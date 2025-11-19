@@ -1,0 +1,56 @@
+[
+  {
+    "id": "inbox",
+    "name": "Inbox",
+    "icon": "inbox",
+    "unreadCount": 5,
+    "totalCount": 12,
+    "order": 0,
+    "isSystem": true
+  },
+  {
+    "id": "starred",
+    "name": "Starred",
+    "icon": "star",
+    "unreadCount": 0,
+    "totalCount": 3,
+    "order": 1,
+    "isSystem": true
+  },
+  {
+    "id": "sent",
+    "name": "Sent",
+    "icon": "send",
+    "unreadCount": 0,
+    "totalCount": 2,
+    "order": 2,
+    "isSystem": true
+  },
+  {
+    "id": "drafts",
+    "name": "Drafts",
+    "icon": "file-edit",
+    "unreadCount": 0,
+    "totalCount": 1,
+    "order": 3,
+    "isSystem": true
+  },
+  {
+    "id": "archive",
+    "name": "Archive",
+    "icon": "archive",
+    "unreadCount": 0,
+    "totalCount": 1,
+    "order": 4,
+    "isSystem": true
+  },
+  {
+    "id": "trash",
+    "name": "Trash",
+    "icon": "trash",
+    "unreadCount": 0,
+    "totalCount": 1,
+    "order": 5,
+    "isSystem": true
+  }
+]
