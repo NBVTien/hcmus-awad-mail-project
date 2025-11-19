@@ -1,0 +1,367 @@
+[
+  {
+    "id": "msg-001",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "alice@example.com",
+      "name": "Alice Johnson"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Project Update - Q4 2025",
+    "body": "Hi John,\n\nHere's the latest update on the Q4 project. We've completed the first milestone and are on track for delivery by end of December.\n\nKey highlights:\n- Feature A completed\n- Testing phase started\n- Documentation in progress\n\nLet me know if you have any questions.\n\nBest regards,\nAlice",
+    "snippet": "Hi John, Here's the latest update on the Q4 project. We've completed the first milestone and are on track for...",
+    "timestamp": "2025-11-18T14:30:00Z",
+    "isRead": false,
+    "isStarred": true,
+    "hasAttachments": true,
+    "attachments": [
+      {
+        "id": "att-001",
+        "filename": "Q4-Report.pdf",
+        "mimeType": "application/pdf",
+        "size": 245760
+      }
+    ]
+  },
+  {
+    "id": "msg-002",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "bob@company.com",
+      "name": "Bob Smith"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Meeting Reminder: Team Sync Tomorrow",
+    "body": "Hi John,\n\nJust a reminder about tomorrow's team sync meeting at 10 AM.\n\nAgenda:\n1. Sprint review\n2. Next sprint planning\n3. Q&A\n\nSee you there!\n\nBob",
+    "snippet": "Just a reminder about tomorrow's team sync meeting at 10 AM. Agenda: Sprint review, Next sprint planning...",
+    "timestamp": "2025-11-18T09:15:00Z",
+    "isRead": false,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-003",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "notifications@github.com",
+      "name": "GitHub"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "New pull request assigned to you",
+    "body": "A new pull request has been assigned to you:\n\n#123: Fix authentication bug\n\nReview at: https://github.com/example/repo/pull/123",
+    "snippet": "A new pull request has been assigned to you: #123: Fix authentication bug",
+    "timestamp": "2025-11-17T16:45:00Z",
+    "isRead": false,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-004",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "sarah@design.com",
+      "name": "Sarah Chen"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "New Design Mockups Ready",
+    "body": "Hi John,\n\nI've completed the design mockups for the new dashboard feature. Please review and let me know your feedback.\n\nFigma link: https://figma.com/file/example\n\nThanks!\nSarah",
+    "snippet": "I've completed the design mockups for the new dashboard feature. Please review and let me know your feedback.",
+    "timestamp": "2025-11-17T11:20:00Z",
+    "isRead": false,
+    "isStarred": true,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-005",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "support@slack.com",
+      "name": "Slack Support"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Your Slack workspace is ready",
+    "body": "Welcome to Slack!\n\nYour workspace has been successfully created. Get started by inviting your team members.\n\nSlack Team",
+    "snippet": "Your workspace has been successfully created. Get started by inviting your team members.",
+    "timestamp": "2025-11-16T14:00:00Z",
+    "isRead": false,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-006",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "newsletter@techblog.com",
+      "name": "Tech Blog Weekly"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Weekly Newsletter: Top 10 React Tips",
+    "body": "This week's top articles:\n\n1. React 19 Features\n2. TypeScript Best Practices\n3. State Management in 2025\n\nRead more at https://techblog.com/newsletter",
+    "snippet": "This week's top articles: React 19 Features, TypeScript Best Practices, State Management in 2025...",
+    "timestamp": "2025-11-16T08:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-007",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "manager@company.com",
+      "name": "Jane Manager"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Performance Review Scheduled",
+    "body": "Hi John,\n\nYour Q4 performance review has been scheduled for next Friday at 2 PM.\n\nPlease prepare your self-assessment by Thursday.\n\nBest,\nJane",
+    "snippet": "Your Q4 performance review has been scheduled for next Friday at 2 PM. Please prepare your self-assessment...",
+    "timestamp": "2025-11-15T13:30:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-008",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "noreply@aws.com",
+      "name": "AWS Billing"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Your AWS Bill for November",
+    "body": "Your AWS bill for November is now available.\n\nTotal: $127.34\n\nView details: https://aws.amazon.com/billing",
+    "snippet": "Your AWS bill for November is now available. Total: $127.34",
+    "timestamp": "2025-11-15T00:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-009",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "team@product.com",
+      "name": "Product Team"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "New Feature Release: Dashboard v2.0",
+    "body": "We're excited to announce the release of Dashboard v2.0!\n\nNew features:\n- Dark mode support\n- Improved performance\n- Mobile responsive design\n\nCheck it out!",
+    "snippet": "We're excited to announce the release of Dashboard v2.0! New features: Dark mode, Improved performance...",
+    "timestamp": "2025-11-14T10:00:00Z",
+    "isRead": true,
+    "isStarred": true,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-010",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "security@company.com",
+      "name": "IT Security"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Action Required: Update Your Password",
+    "body": "As part of our security policy, please update your password within the next 7 days.\n\nUpdate at: https://company.com/security/password",
+    "snippet": "As part of our security policy, please update your password within the next 7 days.",
+    "timestamp": "2025-11-13T09:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-011",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "events@meetup.com",
+      "name": "Meetup"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "React Developers Meetup - Dec 1st",
+    "body": "Join us for the React Developers Meetup on December 1st!\n\nTopics:\n- React Server Components\n- State Management Patterns\n\nRSVP: https://meetup.com/react-devs",
+    "snippet": "Join us for the React Developers Meetup on December 1st! Topics: React Server Components, State Management...",
+    "timestamp": "2025-11-12T15:30:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-012",
+    "mailboxId": "inbox",
+    "from": {
+      "email": "hr@company.com",
+      "name": "HR Department"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Holiday Schedule for December",
+    "body": "Here's the holiday schedule for December:\n\nDec 24-26: Office Closed\nDec 31-Jan 1: Office Closed\n\nHappy Holidays!\nHR Team",
+    "snippet": "Here's the holiday schedule for December: Dec 24-26 and Dec 31-Jan 1 office closed.",
+    "timestamp": "2025-11-10T10:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-013",
+    "mailboxId": "sent",
+    "from": {
+      "email": "user@example.com",
+      "name": "John Doe"
+    },
+    "to": [
+      {
+        "email": "client@external.com",
+        "name": "Client Contact"
+      }
+    ],
+    "subject": "Re: Project Proposal",
+    "body": "Hi,\n\nThank you for the proposal. I've reviewed it and have a few questions:\n\n1. Timeline for Phase 2?\n2. Budget breakdown?\n\nLooking forward to your response.\n\nBest,\nJohn",
+    "snippet": "Thank you for the proposal. I've reviewed it and have a few questions about timeline and budget...",
+    "timestamp": "2025-11-18T11:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-014",
+    "mailboxId": "sent",
+    "from": {
+      "email": "user@example.com",
+      "name": "John Doe"
+    },
+    "to": [
+      {
+        "email": "team@company.com",
+        "name": "Team"
+      }
+    ],
+    "subject": "Sprint Planning Notes",
+    "body": "Team,\n\nHere are the notes from today's sprint planning:\n\n- Sprint goal: Complete authentication feature\n- Story points: 21\n- Sprint duration: 2 weeks\n\nLet's make it a great sprint!\n\nJohn",
+    "snippet": "Here are the notes from today's sprint planning: Complete authentication feature, 21 story points, 2 weeks...",
+    "timestamp": "2025-11-17T15:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-015",
+    "mailboxId": "drafts",
+    "from": {
+      "email": "user@example.com",
+      "name": "John Doe"
+    },
+    "to": [
+      {
+        "email": "boss@company.com",
+        "name": "Boss"
+      }
+    ],
+    "subject": "Q4 Report Draft",
+    "body": "Hi Boss,\n\nHere's the draft of the Q4 report. Still working on the final sections.\n\n[Draft content here]",
+    "snippet": "Here's the draft of the Q4 report. Still working on the final sections...",
+    "timestamp": "2025-11-18T16:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-016",
+    "mailboxId": "archive",
+    "from": {
+      "email": "old@project.com",
+      "name": "Old Project"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Project Completion Summary",
+    "body": "The project has been successfully completed and archived.\n\nFinal stats:\n- Duration: 6 months\n- Features delivered: 25\n- Team size: 5\n\nThank you!",
+    "snippet": "The project has been successfully completed and archived. Final stats: 6 months, 25 features, 5 team members.",
+    "timestamp": "2025-10-01T12:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  },
+  {
+    "id": "msg-017",
+    "mailboxId": "trash",
+    "from": {
+      "email": "spam@marketing.com",
+      "name": "Marketing Spam"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "subject": "Buy Now! 50% Off Everything!",
+    "body": "Limited time offer! Click here to get 50% off all products!\n\n[Spam content]",
+    "snippet": "Limited time offer! Click here to get 50% off all products!",
+    "timestamp": "2025-11-01T08:00:00Z",
+    "isRead": true,
+    "isStarred": false,
+    "hasAttachments": false
+  }
+]
