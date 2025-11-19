@@ -1,0 +1,10 @@
+{
+  "overrides": [
+    {
+      "files": ["**/context/*.tsx", "**/ui/*.tsx"],
+      "rules": {
+        "react-refresh/only-export-components": "off"
+      }
+    }
+  ]
+}
