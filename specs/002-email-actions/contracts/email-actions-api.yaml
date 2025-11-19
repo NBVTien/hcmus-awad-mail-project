@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: Email Actions API
+  description: Mock API endpoints for email actions (star, delete, compose, reply, forward, bulk operations)
+  version: 1.0.0
+  contact:
+    name: HCMUS AWAD G03
+    email: user@example.com
+
+servers:
+  - url: http://localhost:5173/api
+    description: Mock development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /emails/{id}/star:
+    patch:
+      summary: Toggle star status
+      description: Mark or unmark an email as starred
+      operationId: toggleStar
+      tags:
+        - Email Actions
+      parameters:
+        - $ref: '#/components/parameters/EmailId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isStarred
+              properties:
+                isStarred:
+                  type: boolean
+                  description: New starred status
+                  example: true
+      responses:
+        '200':
+          description: Email star status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Email'
+              example:
+                id: msg-001
+                isStarred: true
+                isRead: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EmailNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /emails/{id}/read:
+    patch:
+      summary: Mark email as read or unread
+      description: Update the read status of an email
+      operationId: markRead
+      tags:
+        - Email Actions
+      parameters:
+        - $ref: '#/components/parameters/EmailId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isRead
+              properties:
+                isRead:
+                  type: boolean
+                  description: New read status
+                  example: true
+      responses:
+        '200':
+          description: Email read status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Email'
+              example:
+                id: msg-001
+                isRead: true
+                isStarred: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EmailNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /emails/{id}:
+    delete:
+      summary: Delete email (move to Trash)
+      description: Move an email to the Trash folder. This action is final in the demo (no undo).
+      operationId: deleteEmail
+      tags:
+        - Email Actions
+      parameters:
+        - $ref: '#/components/parameters/EmailId'
+      responses:
+        '204':
+          description: Email deleted successfully (moved to Trash)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EmailNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /emails/bulk:
+    post:
+      summary: Perform bulk operations on multiple emails
+      description: Apply an action (delete, mark read, mark unread) to multiple emails at once
+      operationId: bulkAction
+      tags:
+        - Bulk Actions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emailIds
+                - action
+              properties:
+                emailIds:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Array of email IDs to operate on
+                  example: ["msg-001", "msg-002", "msg-003"]
+                action:
+                  type: string
+                  enum: [delete, markRead, markUnread]
+                  description: Bulk action to perform
+                  example: delete
+      responses:
+        '200':
+          description: Bulk action completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - updatedEmails
+                  - count
+                properties:
+                  updatedEmails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Email'
+                    description: Array of updated emails (empty for delete action)
+                  count:
+                    type: integer
+                    description: Number of emails affected
+                    example: 3
+              example:
+                updatedEmails: []
+                count: 3
+        '400':
+          description: Invalid action or empty email IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: INVALID_ACTION
+                message: Invalid bulk action. Must be one of delete, markRead, markUnread
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /emails:
+    post:
+      summary: Send new email (compose, reply, or forward)
+      description: Send a new email, reply to an existing email, or forward an email
+      operationId: sendEmail
+      tags:
+        - Email Composition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailDraft'
+      responses:
+        '201':
+          description: Email sent successfully and added to Sent folder
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - email
+                  - success
+                properties:
+                  email:
+                    $ref: '#/components/schemas/Email'
+                  success:
+                    type: boolean
+                    example: true
+              example:
+                email:
+                  id: msg-101
+                  mailboxId: sent
+                  from:
+                    email: user@example.com
+                    name: John Doe
+                  to:
+                    - email: bob@example.com
+                      name: Bob Smith
+                  subject: Meeting Agenda
+                  body: "Hi Bob,\n\nHere's the agenda..."
+                  snippet: "Hi Bob, Here's the agenda..."
+                  timestamp: "2025-11-19T10:30:00Z"
+                  isRead: true
+                  isStarred: false
+                  hasAttachments: false
+                success: true
+        '400':
+          description: Validation error (missing required fields or invalid email format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: VALIDATION_ERROR
+                message: Validation failed
+                details:
+                  - field: to
+                    message: At least one recipient is required
+                  - field: subject
+                    message: Subject cannot be empty
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /emails/{id}/attachments/{attachmentId}:
+    get:
+      summary: Download attachment
+      description: Download a file attachment from an email
+      operationId: downloadAttachment
+      tags:
+        - Attachments
+      parameters:
+        - $ref: '#/components/parameters/EmailId'
+        - name: attachmentId
+          in: path
+          required: true
+          description: Attachment ID
+          schema:
+            type: string
+          example: att-001
+      responses:
+        '200':
+          description: Attachment file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: Attachment filename
+              schema:
+                type: string
+                example: attachment; filename="Q4-Report.pdf"
+            Content-Type:
+              description: MIME type of the attachment
+              schema:
+                type: string
+                example: application/pdf
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Email or attachment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: ATTACHMENT_NOT_FOUND
+                message: Attachment not found
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token obtained from login or OAuth
+
+  parameters:
+    EmailId:
+      name: id
+      in: path
+      required: true
+      description: Email ID (UUID format)
+      schema:
+        type: string
+      example: msg-001
+
+  schemas:
+    EmailAddress:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: alice@example.com
+        name:
+          type: string
+          description: Display name (optional)
+          example: Alice Johnson
+
+    Attachment:
+      type: object
+      required:
+        - id
+        - filename
+        - size
+        - mimeType
+        - url
+      properties:
+        id:
+          type: string
+          description: Unique attachment ID
+          example: att-001
+        filename:
+          type: string
+          description: Original filename with extension
+          example: Q4-Report.pdf
+        size:
+          type: integer
+          format: int64
+          description: File size in bytes
+          example: 245760
+        mimeType:
+          type: string
+          description: MIME type of the file
+          example: application/pdf
+        url:
+          type: string
+          description: Download URL or path
+          example: /api/emails/msg-001/attachments/att-001
+
+    Email:
+      type: object
+      required:
+        - id
+        - mailboxId
+        - from
+        - to
+        - subject
+        - body
+        - snippet
+        - timestamp
+        - isRead
+        - isStarred
+        - hasAttachments
+      properties:
+        id:
+          type: string
+          description: Unique email ID
+          example: msg-001
+        mailboxId:
+          type: string
+          description: Mailbox/folder ID
+          example: inbox
+        from:
+          $ref: '#/components/schemas/EmailAddress'
+        to:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+          minItems: 1
+          description: Primary recipients
+        cc:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+          description: CC recipients (optional)
+        subject:
+          type: string
+          description: Email subject
+          example: Project Update - Q4 2025
+        body:
+          type: string
+          description: Full email body (plain text or HTML)
+          example: "Hi John,\n\nHere's the latest update..."
+        snippet:
+          type: string
+          maxLength: 150
+          description: Preview text for list view
+          example: "Hi John, Here's the latest update on the Q4 project..."
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp
+          example: "2025-11-18T14:30:00Z"
+        isRead:
+          type: boolean
+          description: Read status (mutable)
+          example: false
+        isStarred:
+          type: boolean
+          description: Starred status (mutable)
+          example: true
+        hasAttachments:
+          type: boolean
+          description: Whether email has attachments
+          example: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+          description: Attachment metadata (optional)
+
+    EmailDraft:
+      type: object
+      required:
+        - to
+        - subject
+        - body
+      properties:
+        to:
+          type: array
+          items:
+            type: string
+            format: email
+          minItems: 1
+          description: Recipient email addresses
+          example: ["bob@example.com"]
+        cc:
+          type: array
+          items:
+            type: string
+            format: email
+          description: CC email addresses (optional)
+          example: ["alice@example.com"]
+        bcc:
+          type: array
+          items:
+            type: string
+            format: email
+          description: BCC email addresses (optional)
+          example: []
+        subject:
+          type: string
+          minLength: 1
+          description: Email subject (cannot be empty)
+          example: Meeting Agenda for Tomorrow
+        body:
+          type: string
+          description: Email body content
+          example: "Hi Bob,\n\nHere's the agenda for tomorrow's meeting..."
+        attachments:
+          type: array
+          items:
+            type: string
+          description: Attachment IDs (for forwarding) or file data (for new attachments)
+          example: []
+        replyToEmailId:
+          type: string
+          description: Original email ID if this is a reply (mutually exclusive with forwardEmailId)
+          example: msg-001
+        forwardEmailId:
+          type: string
+          description: Original email ID if this is a forward (mutually exclusive with replyToEmailId)
+          example: null
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+          example: Validation failed
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+          description: Additional error details (optional)
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid access token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: UNAUTHORIZED
+            message: Missing or invalid access token
+
+    EmailNotFound:
+      description: Email not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: EMAIL_NOT_FOUND
+            message: Email not found
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: INTERNAL_ERROR
+            message: An unexpected error occurred
+
+tags:
+  - name: Email Actions
+    description: Individual email actions (star, mark read/unread, delete)
+  - name: Bulk Actions
+    description: Operations on multiple emails at once
+  - name: Email Composition
+    description: Compose, reply, and forward emails
+  - name: Attachments
+    description: Download email attachments

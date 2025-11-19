@@ -8,6 +8,7 @@ export interface Attachment {
   filename: string;
   mimeType: string;
   size: number;
+  url?: string;
 }
 
 export interface Mailbox {
@@ -25,6 +26,7 @@ export interface Email {
   mailboxId: string;
   from: EmailAddress;
   to: EmailAddress[];
+  cc?: EmailAddress[];
   subject: string;
   body: string;
   snippet: string;
@@ -33,6 +35,17 @@ export interface Email {
   isStarred: boolean;
   hasAttachments: boolean;
   attachments?: Attachment[];
+}
+
+export interface EmailDraft {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  body: string;
+  attachments?: File[] | string[];
+  replyToEmailId?: string | null;
+  forwardEmailId?: string | null;
 }
 
 export interface EmailListItem {
@@ -63,4 +76,25 @@ export interface GetMailboxesResponse {
 export interface UpdateEmailRequest {
   isRead?: boolean;
   isStarred?: boolean;
+}
+
+export interface EmailSelection {
+  selectedIds: Set<string>;
+  selectAll: boolean;
+  count: number;
+}
+
+export interface BulkActionRequest {
+  emailIds: string[];
+  action: 'delete' | 'markRead' | 'markUnread';
+}
+
+export interface BulkActionResponse {
+  updatedEmails: Email[];
+  count: number;
+}
+
+export interface SendEmailResponse {
+  email: Email;
+  success: boolean;
 }
