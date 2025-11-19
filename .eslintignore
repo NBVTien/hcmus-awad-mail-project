@@ -1,0 +1,22 @@
+# Ignore build and dependency folders
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Editor directories
+.vscode/
+.idea/
+
+# Generated files
+*.local
+.env*
+
+# Misc
+.DS_Store
+*.tmp
+*.swp

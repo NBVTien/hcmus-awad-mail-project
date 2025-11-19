@@ -2,6 +2,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { EmailDetailProps } from './EmailDetail.types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { EmailActionButtons } from './EmailActionButtons';
+import { useEmailActions } from '../hooks/useEmailActions';
 
 const formatFullTimestamp = (timestamp: string): string => {
   const date = new Date(timestamp);
@@ -21,7 +23,15 @@ const formatFileSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const EmailDetail = ({ email, isLoading }: EmailDetailProps) => {
+export const EmailDetail = ({
+  email,
+  isLoading,
+  onDeleteSuccess,
+  onReply,
+  onReplyAll,
+  onForward,
+}: EmailDetailProps) => {
+  const { toggleStar, toggleRead, deleteEmail } = useEmailActions();
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -41,6 +51,32 @@ export const EmailDetail = ({ email, isLoading }: EmailDetailProps) => {
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-4">
+        {/* Action buttons */}
+        {email && (
+          <div className="flex items-center justify-end">
+            <EmailActionButtons
+              emailId={email.id}
+              isStarred={!!email.isStarred}
+              onToggleStar={(id, next) => toggleStar.mutate({ emailId: id, isStarred: next })}
+              onDelete={(id) =>
+                deleteEmail.mutate(id, {
+                  onSuccess: () => {
+                    // Notify parent to update selection/navigation
+                    if (onDeleteSuccess) {
+                      onDeleteSuccess();
+                    }
+                  },
+                })
+              }
+              onMarkUnread={(id) => {
+                toggleRead.mutate({ emailId: id, isRead: false });
+              }}
+              onReply={onReply}
+              onReplyAll={onReplyAll}
+              onForward={onForward}
+            />
+          </div>
+        )}
         {/* Email Header */}
         <div className="space-y-3">
           <h1 className="text-2xl font-bold">{email.subject || '(No subject)'}</h1>
@@ -66,6 +102,21 @@ export const EmailDetail = ({ email, isLoading }: EmailDetailProps) => {
                 ))}
               </span>
             </div>
+
+            {email.cc && email.cc.length > 0 && (
+              <div className="flex items-start gap-2">
+                <span className="text-muted-foreground min-w-16">CC:</span>
+                <span>
+                  {email.cc.map((recipient, index) => (
+                    <span key={index}>
+                      {index > 0 && ', '}
+                      {recipient.name && <strong>{recipient.name}</strong>}{' '}
+                      <span className="text-muted-foreground">&lt;{recipient.email}&gt;</span>
+                    </span>
+                  ))}
+                </span>
+              </div>
+            )}
 
             <div className="flex items-start gap-2">
               <span className="text-muted-foreground min-w-16">Date:</span>
@@ -100,9 +151,25 @@ export const EmailDetail = ({ email, isLoading }: EmailDetailProps) => {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm truncate">{attachment.filename}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {formatFileSize(attachment.size)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatFileSize(attachment.size)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          // Mock download functionality
+                          const link = document.createElement('a');
+                          link.href = attachment.url || '#';
+                          link.download = attachment.filename;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="px-2 py-1 text-xs rounded bg-primary text-white hover:bg-primary/90"
+                      >
+                        Download
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
