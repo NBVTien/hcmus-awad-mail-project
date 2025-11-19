@@ -112,6 +112,62 @@ export const mockEmailService = {
     return email;
   },
 
+  async deleteEmail(emailId: string): Promise<void> {
+    await randomDelay(100, 250);
+
+    const email = emailsState.find((e) => e.id === emailId);
+
+    if (!email) {
+      return throwApiError('EMAIL_NOT_FOUND', 'Email not found', 404);
+    }
+
+    // Move to trash
+    email.mailboxId = 'trash';
+    // When moved to trash, consider it read
+    email.isRead = true;
+
+    this.updateUnreadCounts();
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async sendEmail(draft: any): Promise<Email> {
+    await randomDelay(150, 300);
+
+    const nextId = `msg-${String(emailsState.length + 1).padStart(3, '0')}`;
+    const now = new Date().toISOString();
+
+    const newEmail: Email = {
+      id: nextId,
+      mailboxId: 'sent',
+      from: { email: 'user@example.com', name: 'You' },
+      to: (draft.to || []).map((t: string) => ({ email: t, name: undefined })),
+      cc: (draft.cc || []).map((c: string) => ({ email: c, name: undefined })),
+      subject: draft.subject || '(No subject)',
+      body: draft.body || '',
+      snippet: (draft.body || '').slice(0, 150),
+      timestamp: now,
+      isRead: true,
+      isStarred: false,
+      hasAttachments: !!(draft.attachments && draft.attachments.length),
+      attachments:
+        draft.attachments && draft.attachments.length
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ? draft.attachments.map((a: any, i: number) => ({
+            id: `att-${nextId}-${i}`,
+            filename: typeof a === 'string' ? a : a.name || `attachment-${i}`,
+            mimeType: 'application/octet-stream',
+            size: 0,
+            url: '',
+          }))
+          : undefined,
+    };
+
+    emailsState.unshift(newEmail);
+    this.updateUnreadCounts();
+
+    return newEmail;
+  },
+
   // Helper: Update unread counts for all mailboxes
   updateUnreadCounts() {
     mailboxesState.forEach((mailbox) => {
@@ -125,6 +181,33 @@ export const mockEmailService = {
       mailbox.unreadCount = mailboxEmails.filter((email) => !email.isRead).length;
       mailbox.totalCount = mailboxEmails.length;
     });
+  },
+
+  async bulkDelete(emailIds: string[]): Promise<void> {
+    await randomDelay(150, 300);
+
+    emailIds.forEach((emailId) => {
+      const email = emailsState.find((e) => e.id === emailId);
+      if (email) {
+        email.mailboxId = 'trash';
+        email.isRead = true;
+      }
+    });
+
+    this.updateUnreadCounts();
+  },
+
+  async bulkMarkRead(emailIds: string[], isRead: boolean): Promise<void> {
+    await randomDelay(100, 250);
+
+    emailIds.forEach((emailId) => {
+      const email = emailsState.find((e) => e.id === emailId);
+      if (email) {
+        email.isRead = isRead;
+      }
+    });
+
+    this.updateUnreadCounts();
   },
 
   // Reset state (for testing purposes)
