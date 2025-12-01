@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { ComposeModal } from './ComposeModal';
-import { FolderList } from './FolderList';
+import { AppSidebar } from './AppSidebar';
 import { EmailList } from './EmailList';
 import { EmailDetail } from './EmailDetail';
 import { BulkActionToolbar } from './BulkActionToolbar';
@@ -14,6 +14,7 @@ import { useBulkSelection } from '../hooks/useBulkSelection';
 import { usePagination } from '../hooks/usePagination';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import type { EmailSelection } from '@/types/email.types';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
@@ -148,101 +149,107 @@ export const DashboardLayout = () => {
   }
 
   return (
-    <div className="h-full grid grid-cols-1 md:grid-cols-[250px_1fr] lg:grid-cols-[250px_350px_1fr]">
-      {/* Left Column: Folder List */}
-      <div className="border-r h-full hidden md:block">
-        <FolderList
-          mailboxes={mailboxesQuery.data?.mailboxes || []}
-          selectedMailboxId={selectedMailboxId}
-          onSelectMailbox={handleSelectMailbox}
-          isLoading={mailboxesQuery.isLoading}
-        />
-      </div>
+    <>
+      {/* Sidebar with mailboxes and user info */}
+      <AppSidebar
+        mailboxes={mailboxesQuery.data?.mailboxes || []}
+        selectedMailboxId={selectedMailboxId}
+        onSelectMailbox={handleSelectMailbox}
+        isLoading={mailboxesQuery.isLoading}
+      />
 
-      {/* Middle Column: Email List */}
-      <div className="border-r h-full flex flex-col">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <button
-            onClick={() => emailsQuery.refetch()}
-            className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
-            aria-label="Refresh email list"
-            disabled={emailsQuery.isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${emailsQuery.isLoading ? 'animate-spin' : ''}`} />
-          </button>
+      {/* Main content area */}
+      <SidebarInset className="flex-1">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-[350px_1fr]">
+          {/* Email List Column */}
+          <div className="border-r h-full flex flex-col">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-4 py-2 border-b">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <button
+                  onClick={() => emailsQuery.refetch()}
+                  className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
+                  aria-label="Refresh email list"
+                  disabled={emailsQuery.isLoading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${emailsQuery.isLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
 
-          <button
-            onClick={() => {
-              setComposeMode('compose');
-              setComposeOpen(true);
-            }}
-            className="px-3 py-1 rounded bg-primary text-white hover:bg-primary/90"
-          >
-            Compose
-          </button>
+              <button
+                onClick={() => {
+                  setComposeMode('compose');
+                  setComposeOpen(true);
+                }}
+                className="px-3 py-1 rounded bg-primary text-white hover:bg-primary/90"
+              >
+                Compose
+              </button>
+            </div>
+
+            {/* Bulk Action Toolbar */}
+            <ErrorBoundary>
+              <BulkActionToolbar
+                selectedCount={emailSelection.count}
+                totalCount={emailsQuery.data?.emails.length || 0}
+                selectAll={emailSelection.selectAll}
+                onToggleSelectAll={handleToggleSelectAll}
+                onBulkDelete={handleBulkDelete}
+                onBulkMarkRead={handleBulkMarkRead}
+                onBulkMarkUnread={handleBulkMarkUnread}
+              />
+            </ErrorBoundary>
+
+            {/* Email List */}
+            <div className="flex-1 overflow-hidden">
+              <EmailList
+                emails={emailsQuery.data?.emails || []}
+                selectedEmailId={selectedEmailId}
+                onSelectEmail={setSelectedEmailId}
+                isLoading={emailsQuery.isLoading}
+                selectedIds={emailSelection.selectedIds}
+                onToggleSelect={handleToggleSelect}
+                showCheckboxes={true}
+              />
+            </div>
+
+            {/* Pagination */}
+            {emailsQuery.data?.pagination && (
+              <PaginationControls
+                page={page}
+                totalPages={emailsQuery.data.pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </div>
+
+          {/* Email Detail Column */}
+          <div className="h-full hidden lg:block">
+            <EmailDetail
+              email={emailDetailQuery.data || null}
+              isLoading={emailDetailQuery.isLoading}
+              onDeleteSuccess={() => {
+                // After delete, clear selection and go back to inbox
+                setSelectedEmailId(null);
+                setSelectedMailboxId('inbox');
+              }}
+              onReply={() => {
+                setComposeMode('reply');
+                setComposeOpen(true);
+              }}
+              onReplyAll={() => {
+                setComposeMode('replyAll');
+                setComposeOpen(true);
+              }}
+              onForward={() => {
+                setComposeMode('forward');
+                setComposeOpen(true);
+              }}
+            />
+          </div>
         </div>
-
-        {/* Bulk Action Toolbar */}
-        <ErrorBoundary>
-          <BulkActionToolbar
-            selectedCount={emailSelection.count}
-            totalCount={emailsQuery.data?.emails.length || 0}
-            selectAll={emailSelection.selectAll}
-            onToggleSelectAll={handleToggleSelectAll}
-            onBulkDelete={handleBulkDelete}
-            onBulkMarkRead={handleBulkMarkRead}
-            onBulkMarkUnread={handleBulkMarkUnread}
-          />
-        </ErrorBoundary>
-
-        {/* Email List */}
-        <div className="flex-1 overflow-hidden">
-          <EmailList
-            emails={emailsQuery.data?.emails || []}
-            selectedEmailId={selectedEmailId}
-            onSelectEmail={setSelectedEmailId}
-            isLoading={emailsQuery.isLoading}
-            selectedIds={emailSelection.selectedIds}
-            onToggleSelect={handleToggleSelect}
-            showCheckboxes={true}
-          />
-        </div>
-
-        {/* Pagination */}
-        {emailsQuery.data?.pagination && (
-          <PaginationControls
-            page={page}
-            totalPages={emailsQuery.data.pagination.totalPages}
-            onPageChange={setPage}
-          />
-        )}
-      </div>
-
-      {/* Right Column: Email Detail */}
-      <div className="h-full hidden lg:block">
-        <EmailDetail
-          email={emailDetailQuery.data || null}
-          isLoading={emailDetailQuery.isLoading}
-          onDeleteSuccess={() => {
-            // After delete, clear selection and go back to inbox
-            setSelectedEmailId(null);
-            setSelectedMailboxId('inbox');
-          }}
-          onReply={() => {
-            setComposeMode('reply');
-            setComposeOpen(true);
-          }}
-          onReplyAll={() => {
-            setComposeMode('replyAll');
-            setComposeOpen(true);
-          }}
-          onForward={() => {
-            setComposeMode('forward');
-            setComposeOpen(true);
-          }}
-        />
-      </div>
+      </SidebarInset>
 
       <ErrorBoundary>
         <ComposeModal
@@ -255,6 +262,6 @@ export const DashboardLayout = () => {
           originalEmail={composeMode !== 'compose' ? emailDetailQuery.data || null : null}
         />
       </ErrorBoundary>
-    </div>
+    </>
   );
 };
