@@ -1,5 +1,6 @@
 import React from 'react';
-import { Reply, ReplyAll, Forward } from 'lucide-react';
+import { Reply, ReplyAll, Forward, Star, Trash2, MailOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   emailId: string;
@@ -25,59 +26,65 @@ export const EmailActionButtons: React.FC<Props> = ({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {onReply && (
-        <button
-          className="px-2 py-1 rounded bg-blue-100 text-blue-800 flex items-center gap-1"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onReply}
           aria-label="Reply"
         >
           <Reply className="h-4 w-4" />
-          Reply
-        </button>
+        </Button>
       )}
 
       {onReplyAll && (
-        <button
-          className="px-2 py-1 rounded bg-blue-100 text-blue-800 flex items-center gap-1"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onReplyAll}
           aria-label="Reply All"
         >
           <ReplyAll className="h-4 w-4" />
-          Reply All
-        </button>
+        </Button>
       )}
 
       {onForward && (
-        <button
-          className="px-2 py-1 rounded bg-indigo-100 text-indigo-800 flex items-center gap-1"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onForward}
           aria-label="Forward"
         >
           <Forward className="h-4 w-4" />
-          Forward
-        </button>
+        </Button>
       )}
 
-      <button
-        className="px-2 py-1 rounded bg-yellow-100 text-yellow-800"
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onToggleStar(emailId, !isStarred)}
         aria-pressed={isStarred}
+        aria-label={isStarred ? 'Unstar' : 'Star'}
       >
-        {isStarred ? '★ Starred' : '☆ Star'}
-      </button>
+        <Star className={`h-4 w-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+      </Button>
 
-      <button
-        className="px-2 py-1 rounded bg-red-100 text-red-800"
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onDelete(emailId)}
+        aria-label="Delete"
       >
-        Delete
-      </button>
+        <Trash2 className="h-4 w-4" />
+      </Button>
 
-      <button
-        className="px-2 py-1 rounded bg-slate-100 text-slate-800"
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onMarkUnread(emailId)}
+        aria-label="Mark Unread"
       >
-        Mark Unread
-      </button>
+        <MailOpen className="h-4 w-4" />
+      </Button>
     </div>
   );
 };

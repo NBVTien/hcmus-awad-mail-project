@@ -1,0 +1,103 @@
+import { LogOut, Mail } from 'lucide-react';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import type { Mailbox } from '@/types/email.types';
+
+interface AppSidebarProps {
+  mailboxes: Mailbox[];
+  selectedMailboxId: string;
+  onSelectMailbox: (mailboxId: string) => void;
+  isLoading?: boolean;
+}
+
+export const AppSidebar = ({
+  mailboxes,
+  selectedMailboxId,
+  onSelectMailbox,
+  isLoading,
+}: AppSidebarProps) => {
+  const { user, logout } = useAuth();
+
+  return (
+    <Sidebar>
+      <SidebarHeader className="border-b px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Mail className="h-5 w-5" />
+          <h1 className="text-lg font-bold">Email Dashboard</h1>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Mailboxes</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <ScrollArea className="flex-1">
+              <SidebarMenu>
+                {isLoading ? (
+                  <div className="space-y-2 px-4 py-3">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                ) : (
+                  mailboxes.map((mailbox) => (
+                    <SidebarMenuItem key={mailbox.id}>
+                      <SidebarMenuButton
+                        onClick={() => onSelectMailbox(mailbox.id)}
+                        isActive={selectedMailboxId === mailbox.id}
+                        className="w-full"
+                      >
+                        <span className="flex items-center justify-between w-full">
+                          <span>{mailbox.name}</span>
+                          {mailbox.unreadCount > 0 && (
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
+                              {mailbox.unreadCount}
+                            </span>
+                          )}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))
+                )}
+              </SidebarMenu>
+            </ScrollArea>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t">
+        <div className="px-4 py-3 space-y-3">
+          <div className="text-sm text-muted-foreground truncate">
+            {user?.email}
+          </div>
+          <Separator />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            className="w-full justify-start"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
