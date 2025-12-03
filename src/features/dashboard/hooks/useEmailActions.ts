@@ -105,7 +105,7 @@ export function useEmailActions() {
             showError('Failed to update read status');
         },
 
-        onSuccess: (_data, { emailId }) => {
+        onSuccess: () => {
             // Only invalidate mailboxes (for unread count)
             queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
             // Don't show toast for auto-mark-as-read
