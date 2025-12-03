@@ -130,18 +130,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (refreshToken) {
         try {
           const newAccessToken = await refreshAccessToken();
-          // If successful, user data will be fetched by the app
-          // For now, we'll set a placeholder user (in real app, fetch user profile)
-          const mockUser: User = {
-            id: 'user-id',
-            email: 'user@example.com',
-            displayName: 'User',
-            profilePicture: null,
-            authMethod: 'email',
-            createdAt: new Date().toISOString(),
-          };
-          setUser(mockUser);
           setAccessToken(newAccessToken);
+
+          // Fetch actual user profile from backend
+          const { authService } = await import('@/services/authService');
+          const userProfile = await authService.getProfile();
+          setUser(userProfile);
         } catch {
           // Refresh failed, clear everything
           await logout();
