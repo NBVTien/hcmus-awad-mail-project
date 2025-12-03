@@ -1,42 +1,21 @@
 import { Button } from '@/components/ui/button';
 import type { OAuthButtonProps } from './OAuthButton.types';
-import {
-  generateCodeVerifier,
-  generateState,
-  generateCodeChallenge,
-  buildAuthorizationUrl,
-  storeOAuthState,
-} from '../services/oauthUtils';
+import { authService } from '@/services/authService';
 
 export const OAuthButton = ({ onError }: OAuthButtonProps) => {
-  const handleOAuthLogin = () => {
+  const handleOAuthLogin = async () => {
     try {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      // Get the callback URL where backend will redirect after OAuth
       const redirectUri =
         import.meta.env.VITE_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
 
-      if (!clientId) {
-        throw new Error('Google Client ID not configured');
-      }
-
-      // Generate PKCE parameters
-      const codeVerifier = generateCodeVerifier();
-      const codeChallenge = generateCodeChallenge(codeVerifier);
-      const state = generateState();
-
-      // Store state and code verifier
-      storeOAuthState(state, codeVerifier);
-
-      // Build authorization URL
-      const authUrl = buildAuthorizationUrl({
-        clientId,
+      // Call backend to get Gmail OAuth URL
+      const { authorizationUrl } = await authService.initiateGoogleAuth({
         redirectUri,
-        state,
-        codeChallenge,
       });
 
-      // Redirect to Google OAuth
-      window.location.href = authUrl;
+      // Redirect to Google OAuth (via backend's URL)
+      window.location.href = authorizationUrl;
     } catch (error) {
       onError?.(error instanceof Error ? error : new Error('OAuth initialization failed'));
     }
