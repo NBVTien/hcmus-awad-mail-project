@@ -33,6 +33,10 @@ export const AppSidebar = ({
 }: AppSidebarProps) => {
   const { user, logout } = useAuth();
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-4 py-3">
@@ -90,7 +94,7 @@ export const AppSidebar = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full justify-start"
           >
             <LogOut className="h-4 w-4 mr-2" />

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { showError } from '@/lib/toast';
+import { htmlToPlainText } from '@/lib/htmlUtils';
 import type { Email } from '@/types/email.types';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
@@ -28,7 +29,8 @@ const formatQuotedBody = (email: Email): string => {
     ? `${email.from.name} <${email.from.email}>`
     : email.from.email;
   const date = new Date(email.timestamp).toLocaleString();
-  return `\n\n------- Forwarded message -------\nFrom: ${from}\nDate: ${date}\nSubject: ${email.subject}\n\n${email.body}`;
+  const plainTextBody = htmlToPlainText(email.body);
+  return `\n\n------- Forwarded message -------\nFrom: ${from}\nDate: ${date}\nSubject: ${email.subject}\n\n${plainTextBody}`;
 };
 
 const formatReplyBody = (email: Email): string => {
@@ -36,7 +38,8 @@ const formatReplyBody = (email: Email): string => {
     ? `${email.from.name} <${email.from.email}>`
     : email.from.email;
   const date = new Date(email.timestamp).toLocaleString();
-  return `\n\nOn ${date}, ${from} wrote:\n> ${email.body.split('\n').join('\n> ')}`;
+  const plainTextBody = htmlToPlainText(email.body);
+  return `\n\nOn ${date}, ${from} wrote:\n> ${plainTextBody.split('\n').join('\n> ')}`;
 };
 
 export const ComposeModal: React.FC<Props> = ({

@@ -13,12 +13,29 @@ const apiClient = axios.create({
 // Token management functions (will be set by AuthContext)
 let getAccessToken: (() => string | null) | null = null;
 let refreshAccessToken: (() => Promise<string>) | null = null;
-let logout: (() => void) | null = null;
+let logout: (() => Promise<void>) | null = null;
+
+/**
+ * Concurrency guard: prevents multiple simultaneous refresh attempts
+ *
+ * Problem: Multiple 401 responses can trigger concurrent refresh requests:
+ *   Request A (401) → refresh #1
+ *   Request B (401) → refresh #2  ❌ Unnecessary!
+ *   Request C (401) → refresh #3  ❌ Unnecessary!
+ *
+ * Solution: If a refresh is in progress, subsequent requests await the same promise:
+ *   Request A (401) → refresh #1
+ *   Request B (401) → await refresh #1  ✅
+ *   Request C (401) → await refresh #1  ✅
+ *
+ * This prevents race conditions and reduces backend load.
+ */
+let refreshPromise: Promise<string> | null = null;
 
 export const setAuthCallbacks = (callbacks: {
   getAccessToken: () => string | null;
   refreshAccessToken: () => Promise<string>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }) => {
   getAccessToken = callbacks.getAccessToken;
   refreshAccessToken = callbacks.refreshAccessToken;
@@ -53,7 +70,30 @@ apiClient.interceptors.response.use(
           throw new Error('Refresh token callback not set');
         }
 
-        const newAccessToken = await refreshAccessToken();
+        // Concurrency guard: if a refresh is already in progress, await it
+        // instead of issuing another refresh request
+        if (refreshPromise) {
+          const newAccessToken = await refreshPromise;
+
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          }
+
+          return apiClient(originalRequest);
+        }
+
+        // No refresh in progress, start a new one
+        refreshPromise = refreshAccessToken()
+          .then((token) => {
+            refreshPromise = null; // Clear the promise on success
+            return token;
+          })
+          .catch((error) => {
+            refreshPromise = null; // Clear the promise on error
+            throw error;
+          });
+
+        const newAccessToken = await refreshPromise;
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -62,7 +102,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Redirect to login if refresh fails
-        logout?.();
+        logout?.().catch(console.error);
         return Promise.reject(refreshError);
       }
     }
