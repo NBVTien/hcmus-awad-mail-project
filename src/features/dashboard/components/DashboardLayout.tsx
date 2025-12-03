@@ -14,6 +14,11 @@ import { useBulkSelection } from '../hooks/useBulkSelection';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from '@/components/ui/resizable';
 import type { EmailSelection } from '@/types/email.types';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
@@ -164,9 +169,10 @@ export const DashboardLayout = () => {
 
       {/* Main content area */}
       <SidebarInset className="flex-1 overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-[350px_1fr] overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Email List Column */}
-          <div className="border-r h-full flex flex-col overflow-hidden">
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            <div className="border-r h-full flex flex-col overflow-hidden">
             {/* Toolbar */}
             <div className="flex items-center justify-between px-4 py-2 border-b">
               <div className="flex items-center gap-2">
@@ -209,7 +215,7 @@ export const DashboardLayout = () => {
             </ErrorBoundary>
 
             {/* Email List */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden w-full">
               <EmailList
                 emails={emailsQuery.data?.emails || []}
                 selectedEmailId={selectedEmailId}
@@ -229,10 +235,14 @@ export const DashboardLayout = () => {
                 onPageChange={setPage}
               />
             )}
-          </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
 
           {/* Email Detail Column */}
-          <div className="h-full hidden lg:block overflow-hidden">
+          <ResizablePanel defaultSize={65} minSize={50}>
+            <div className="h-full overflow-hidden">
             <EmailDetail
               email={emailDetailQuery.data || null}
               isLoading={emailDetailQuery.isLoading}
@@ -254,8 +264,9 @@ export const DashboardLayout = () => {
                 setComposeOpen(true);
               }}
             />
-          </div>
-        </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </SidebarInset>
 
       <ErrorBoundary>
