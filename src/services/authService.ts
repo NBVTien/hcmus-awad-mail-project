@@ -110,12 +110,13 @@ export const authService = {
 
     // Transform backend response to frontend User format
     const backendData = response.data;
+    const authMethod: 'google' | 'email' = backendData.googleId ? 'google' : 'email';
     return {
       id: backendData.id,
       email: backendData.email,
       displayName: backendData.name,
       profilePicture: null,
-      authMethod: (backendData.googleId ? 'google' : 'email') as const,
+      authMethod,
       createdAt: backendData.createdAt || new Date().toISOString(),
     };
   },

@@ -34,7 +34,7 @@ export const EmailDetail = ({
   onForward,
 }: EmailDetailProps) => {
   const { toggleStar, toggleRead, deleteEmail } = useEmailActions();
-  const markAsReadTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const markAsReadTimerRef = useRef<number | null>(null);
   const markedEmailsRef = useRef<Set<string>>(new Set());
 
   // Auto-mark email as read after viewing for a few seconds
