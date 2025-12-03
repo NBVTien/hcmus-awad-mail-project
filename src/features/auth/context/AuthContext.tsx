@@ -9,7 +9,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (user: User, token: AuthToken) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshAccessToken: () => Promise<string>;
   getAccessToken: () => string | null;
 }
@@ -68,7 +68,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.setItem(REFRESH_TOKEN_KEY, token.refreshToken);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+
+    // Call backend logout endpoint to invalidate refresh token
+    if (refreshToken) {
+      try {
+        const { authService } = await import('@/services/authService');
+        await authService.logout({ refreshToken });
+      } catch (error) {
+        // Still logout locally even if backend call fails
+        console.error('Logout error:', error);
+      }
+    }
+
+    // Clear local state
     setUser(null);
     setAccessToken(null);
     setTokenExpiresAt(null);
@@ -94,14 +108,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (refreshTime <= 0) {
       // Token already expired or will expire soon, refresh immediately
       refreshAccessToken().catch(() => {
-        logout();
+        logout().catch(console.error);
       });
       return;
     }
 
     const timeout = setTimeout(() => {
       refreshAccessToken().catch(() => {
-        logout();
+        logout().catch(console.error);
       });
     }, refreshTime);
 
@@ -130,7 +144,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setAccessToken(newAccessToken);
         } catch {
           // Refresh failed, clear everything
-          logout();
+          await logout();
         }
       }
 

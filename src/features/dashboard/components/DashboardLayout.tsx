@@ -19,7 +19,7 @@ import type { EmailSelection } from '@/types/email.types';
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
 export const DashboardLayout = () => {
-  const [selectedMailboxId, setSelectedMailboxId] = useState<string>('inbox');
+  const [selectedMailboxId, setSelectedMailboxId] = useState<string>('INBOX');
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeMode, setComposeMode] = useState<ComposeMode>('compose');
@@ -239,7 +239,7 @@ export const DashboardLayout = () => {
               onDeleteSuccess={() => {
                 // After delete, clear selection and go back to inbox
                 setSelectedEmailId(null);
-                setSelectedMailboxId('inbox');
+                setSelectedMailboxId('INBOX');
               }}
               onReply={() => {
                 setComposeMode('reply');

@@ -1,3 +1,8 @@
+/**
+ * TODO: For production, consider implementing list virtualization for large mailboxes (1000+ emails)
+ * Recommended: react-window or @tanstack/react-virtual
+ * See: IMPLEMENTATION_TIPS.md Section 3
+ */
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';

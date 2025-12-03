@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { EmailActionButtons } from './EmailActionButtons';
 import { useEmailActions } from '../hooks/useEmailActions';
 import { useEffect, useRef } from 'react';
+import { EmailBodyRenderer } from './EmailBodyRenderer';
 
 const formatFullTimestamp = (timestamp: string): string => {
   const date = new Date(timestamp);
@@ -157,10 +158,8 @@ export const EmailDetail = ({
         <Separator />
 
         {/* Email Body */}
-        <div className="prose prose-sm max-w-none">
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-            {email.body}
-          </pre>
+        <div className="max-w-none">
+          <EmailBodyRenderer body={email.body} />
         </div>
 
         {/* Attachments */}
