@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { mockAuthService } from '@/services/mockAuthService';
-import { validateOAuthState } from '../services/oauthUtils';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
 
 export const OAuthCallbackPage = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -15,36 +12,55 @@ export const OAuthCallbackPage = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Extract code and state from URL
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
-        const errorParam = searchParams.get('error');
+        // In backend redirect flow, auth data is passed in URL fragment (hash)
+        // Format: #access_token=xxx&refresh_token=xxx&expires_at=xxx&user=...
+        const hash = window.location.hash.substring(1); // Remove the '#'
+
+        if (!hash) {
+          throw new Error('No authentication data received');
+        }
+
+        // Parse URL fragment
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const expiresAt = params.get('expires_at');
+        const userDataEncoded = params.get('user');
+        const errorParam = params.get('error');
 
         // Check for OAuth errors
         if (errorParam) {
           throw new Error(`OAuth error: ${errorParam}`);
         }
 
-        if (!code || !state) {
-          throw new Error('Missing authorization code or state parameter');
+        if (!accessToken || !refreshToken || !userDataEncoded) {
+          throw new Error('Missing authentication data in callback');
         }
 
-        // Validate state and retrieve code verifier
-        const { isValid, codeVerifier } = validateOAuthState(state);
+        // Decode user data (backend encodes it as base64 JSON)
+        const userData = JSON.parse(atob(userDataEncoded));
 
-        if (!isValid || !codeVerifier) {
-          throw new Error('Invalid or expired OAuth state (CSRF protection)');
-        }
-
-        // Exchange code for tokens
-        const response = await mockAuthService.handleGoogleCallback({
-          code,
-          state,
-          codeVerifier,
-        });
+        // Construct auth response in expected format
+        const authResponse = {
+          user: {
+            id: userData.id,
+            email: userData.email,
+            displayName: userData.name || userData.displayName,
+            profilePicture: userData.profilePicture || null,
+            authMethod: 'google' as const,
+            createdAt: userData.createdAt || new Date().toISOString(),
+          },
+          token: {
+            accessToken,
+            refreshToken,
+            expiresAt: expiresAt ? parseInt(expiresAt, 10) : Date.now() + 15 * 60 * 1000,
+            tokenType: 'Bearer' as const,
+            scope: 'email profile gmail',
+          },
+        };
 
         // Login with received tokens
-        login(response.user, response.token);
+        login(authResponse.user, authResponse.token);
 
         // Redirect to dashboard
         navigate('/inbox', { replace: true });
@@ -55,7 +71,7 @@ export const OAuthCallbackPage = () => {
     };
 
     handleCallback();
-  }, [searchParams, login, navigate]);
+  }, [login, navigate]);
 
   if (error) {
     return (

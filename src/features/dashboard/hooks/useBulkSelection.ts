@@ -1,11 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import { mockEmailService } from '@/services/mockEmailService';
+import { emailService } from '@/services/emailService';
 import { queryClient } from '@/lib/queryClient';
 import { showSuccess, showError } from '@/lib/toast';
 
 export function useBulkSelection() {
   const bulkDelete = useMutation({
-    mutationFn: (emailIds: string[]) => mockEmailService.bulkDelete(emailIds),
+    mutationFn: (emailIds: string[]) => emailService.bulkDelete(emailIds),
     onSuccess: (_, emailIds) => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
@@ -16,7 +16,7 @@ export function useBulkSelection() {
 
   const bulkMarkRead = useMutation({
     mutationFn: ({ emailIds, isRead }: { emailIds: string[]; isRead: boolean }) =>
-      mockEmailService.bulkMarkRead(emailIds, isRead),
+      emailService.bulkMarkRead(emailIds, isRead),
     onSuccess: (_, { emailIds, isRead }) => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
