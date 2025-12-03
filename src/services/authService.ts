@@ -18,7 +18,26 @@ export const authService = {
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.post('/auth/login', data);
-    return response.data;
+
+    // Transform backend response to frontend format
+    const backendData = response.data;
+    return {
+      user: {
+        id: backendData.user.id,
+        email: backendData.user.email,
+        displayName: backendData.user.name,
+        profilePicture: null,
+        authMethod: 'email' as const,
+        createdAt: new Date().toISOString(),
+      },
+      token: {
+        accessToken: backendData.accessToken,
+        refreshToken: backendData.refreshToken,
+        expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
+        tokenType: 'Bearer' as const,
+        scope: 'email',
+      },
+    };
   },
 
   /**
@@ -66,7 +85,14 @@ export const authService = {
    */
   async refreshToken(data: RefreshTokenRequest): Promise<RefreshTokenResponse> {
     const response = await apiClient.post('/auth/refresh', data);
-    return response.data;
+
+    // Backend returns { accessToken, refreshToken }
+    const backendData = response.data;
+    return {
+      accessToken: backendData.accessToken,
+      expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
+      tokenType: 'Bearer' as const,
+    };
   },
 
   /**
@@ -81,6 +107,16 @@ export const authService = {
    */
   async getProfile() {
     const response = await apiClient.get('/auth/profile');
-    return response.data;
+
+    // Transform backend response to frontend User format
+    const backendData = response.data;
+    return {
+      id: backendData.id,
+      email: backendData.email,
+      displayName: backendData.name,
+      profilePicture: null,
+      authMethod: (backendData.googleId ? 'google' : 'email') as const,
+      createdAt: backendData.createdAt || new Date().toISOString(),
+    };
   },
 };

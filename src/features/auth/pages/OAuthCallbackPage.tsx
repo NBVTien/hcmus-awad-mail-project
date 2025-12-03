@@ -12,48 +12,46 @@ export const OAuthCallbackPage = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // In backend redirect flow, auth data is passed in URL fragment (hash)
-        // Format: #access_token=xxx&refresh_token=xxx&expires_at=xxx&user=...
+        // Check for error in query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const authStatus = urlParams.get('auth');
+        const errorMessage = urlParams.get('message');
+
+        if (authStatus === 'error') {
+          throw new Error(errorMessage || 'OAuth authentication failed');
+        }
+
+        // Backend redirects with auth data in URL fragment (hash)
+        // Format: #<URL-encoded JSON>
         const hash = window.location.hash.substring(1); // Remove the '#'
 
         if (!hash) {
           throw new Error('No authentication data received');
         }
 
-        // Parse URL fragment
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const expiresAt = params.get('expires_at');
-        const userDataEncoded = params.get('user');
-        const errorParam = params.get('error');
+        // Decode the JSON data from the hash
+        const decodedData = decodeURIComponent(hash);
+        const authData = JSON.parse(decodedData);
 
-        // Check for OAuth errors
-        if (errorParam) {
-          throw new Error(`OAuth error: ${errorParam}`);
-        }
-
-        if (!accessToken || !refreshToken || !userDataEncoded) {
+        // Validate received data
+        if (!authData.accessToken || !authData.refreshToken || !authData.user) {
           throw new Error('Missing authentication data in callback');
         }
-
-        // Decode user data (backend encodes it as base64 JSON)
-        const userData = JSON.parse(atob(userDataEncoded));
 
         // Construct auth response in expected format
         const authResponse = {
           user: {
-            id: userData.id,
-            email: userData.email,
-            displayName: userData.name || userData.displayName,
-            profilePicture: userData.profilePicture || null,
+            id: authData.user.id,
+            email: authData.user.email,
+            displayName: authData.user.name,
+            profilePicture: null,
             authMethod: 'google' as const,
-            createdAt: userData.createdAt || new Date().toISOString(),
+            createdAt: new Date().toISOString(),
           },
           token: {
-            accessToken,
-            refreshToken,
-            expiresAt: expiresAt ? parseInt(expiresAt, 10) : Date.now() + 15 * 60 * 1000,
+            accessToken: authData.accessToken,
+            refreshToken: authData.refreshToken,
+            expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes default
             tokenType: 'Bearer' as const,
             scope: 'email profile gmail',
           },

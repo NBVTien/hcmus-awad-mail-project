@@ -6,7 +6,51 @@ import type {
   GetMailboxesResponse,
   UpdateEmailRequest,
   EmailDraft,
+  EmailAddress,
 } from '@/types/email.types';
+
+/**
+ * Transform backend Gmail email format to frontend format
+ */
+const transformEmail = (backendEmail: any): Email => {
+  // Parse email address from backend format
+  const parseEmailAddress = (addr: any): EmailAddress => {
+    if (typeof addr === 'string') {
+      return { email: addr, name: addr.split('@')[0] };
+    }
+    return { email: addr.email || '', name: addr.name || addr.email?.split('@')[0] || '' };
+  };
+
+  // Parse timestamp - could be Date object, ISO string, or milliseconds
+  let timestamp: string;
+  if (backendEmail.date) {
+    timestamp = backendEmail.date instanceof Date
+      ? backendEmail.date.toISOString()
+      : new Date(backendEmail.date).toISOString();
+  } else if (backendEmail.internalDate) {
+    timestamp = new Date(parseInt(backendEmail.internalDate)).toISOString();
+  } else {
+    timestamp = new Date().toISOString();
+  }
+
+  return {
+    id: backendEmail.id,
+    mailboxId: backendEmail.labelIds?.[0] || 'INBOX',
+    from: parseEmailAddress(backendEmail.from),
+    to: Array.isArray(backendEmail.to)
+      ? backendEmail.to.map(parseEmailAddress)
+      : [parseEmailAddress(backendEmail.to || backendEmail.toEmail)],
+    cc: backendEmail.cc ? backendEmail.cc.map(parseEmailAddress) : undefined,
+    subject: backendEmail.subject || '(No Subject)',
+    body: backendEmail.htmlBody || backendEmail.textBody || backendEmail.body || '',
+    snippet: backendEmail.snippet || '',
+    timestamp,
+    isRead: backendEmail.read !== undefined ? backendEmail.read : !backendEmail.labelIds?.includes('UNREAD'),
+    isStarred: backendEmail.starred !== undefined ? backendEmail.starred : backendEmail.labelIds?.includes('STARRED') || false,
+    hasAttachments: (backendEmail.attachments && backendEmail.attachments.length > 0) || false,
+    attachments: backendEmail.attachments,
+  };
+};
 
 /**
  * Real email service that communicates with the backend API
@@ -18,10 +62,21 @@ export const emailService = {
   async getMailboxes(): Promise<GetMailboxesResponse> {
     const response = await apiClient.get('/emails/mailboxes');
 
-    // Response is array of mailboxes, wrap it in the expected format
-    return {
-      mailboxes: Array.isArray(response.data) ? response.data : response.data.mailboxes || [],
-    };
+    // Backend returns array: [{ id, name, messagesTotal, messagesUnread, type }]
+    const backendMailboxes = Array.isArray(response.data) ? response.data : [];
+
+    // Transform to frontend format
+    const mailboxes: Mailbox[] = backendMailboxes.map((mb: any, index: number) => ({
+      id: mb.id,
+      name: mb.name,
+      icon: undefined,
+      unreadCount: mb.messagesUnread || 0,
+      totalCount: mb.messagesTotal || 0,
+      order: index,
+      isSystem: mb.type === 'system',
+    }));
+
+    return { mailboxes };
   },
 
   /**
@@ -45,7 +100,12 @@ export const emailService = {
       },
     });
 
-    return response.data;
+    // Backend returns { emails: [...], pagination: {...} }
+    const backendData = response.data;
+    return {
+      emails: backendData.emails.map(transformEmail),
+      pagination: backendData.pagination,
+    };
   },
 
   /**
@@ -53,14 +113,14 @@ export const emailService = {
    */
   async getEmailById(emailId: string): Promise<Email> {
     const response = await apiClient.get(`/emails/${emailId}`);
-    return response.data;
+    return transformEmail(response.data);
   },
 
   /**
    * Update email (mark as read/starred)
    */
   async updateEmail(emailId: string, updates: UpdateEmailRequest): Promise<Email> {
-    // Backend uses /emails/:id/modify with different field names
+    // Backend uses /emails/:id/modify with field names: read, starred
     const backendUpdates: Record<string, boolean> = {};
 
     if (updates.isRead !== undefined) {
@@ -70,18 +130,26 @@ export const emailService = {
       backendUpdates.starred = updates.isStarred;
     }
 
+    // Backend returns { message: 'Email modified successfully' }
     await apiClient.post(`/emails/${emailId}/modify`, backendUpdates);
 
-    // Backend returns { message }, so fetch the updated email
+    // Fetch and return the updated email
     return this.getEmailById(emailId);
   },
 
   /**
-   * Delete email (move to trash)
+   * Delete email (permanently delete)
    */
   async deleteEmail(emailId: string): Promise<void> {
-    // Backend has a specific delete endpoint
+    // Backend returns { message: 'Email deleted permanently' }
     await apiClient.post(`/emails/${emailId}/delete`);
+  },
+
+  /**
+   * Move email to trash
+   */
+  async trashEmail(emailId: string): Promise<void> {
+    await apiClient.post(`/emails/${emailId}/modify`, { trash: true });
   },
 
   /**
@@ -96,18 +164,17 @@ export const emailService = {
       body: draft.body,
     });
 
-    // Backend returns { message, messageId, threadId }
-    // Return the sent email by fetching it (or construct a minimal Email object)
-    // For now, we'll construct a minimal object since we don't have the full email
+    // Backend returns { message: 'Email sent successfully', messageId, threadId }
+    // Construct a minimal email object representing the sent email
     const sentEmail: Email = {
-      id: response.data.messageId,
+      id: response.data.messageId || response.data.id,
       mailboxId: 'SENT',
       from: { email: '', name: 'You' }, // Will be filled from user profile
-      to: draft.to.map(email => ({ email })),
-      cc: draft.cc?.map(email => ({ email })),
+      to: draft.to.map(email => ({ email, name: email.split('@')[0] })),
+      cc: draft.cc?.map(email => ({ email, name: email.split('@')[0] })),
       subject: draft.subject,
       body: draft.body,
-      snippet: draft.body.slice(0, 150),
+      snippet: draft.body.replace(/<[^>]*>/g, '').slice(0, 150), // Strip HTML for snippet
       timestamp: new Date().toISOString(),
       isRead: true,
       isStarred: false,
@@ -118,15 +185,44 @@ export const emailService = {
   },
 
   /**
-   * Bulk delete emails (implemented as sequential calls)
+   * Reply to an email
+   */
+  async replyToEmail(emailId: string, body: string, replyAll: boolean = false, cc?: string[]): Promise<Email> {
+    const response = await apiClient.post(`/emails/${emailId}/reply`, {
+      body,
+      replyAll,
+      cc,
+    });
+
+    // Backend returns { message: 'Reply sent successfully', messageId, threadId }
+    // Construct a minimal email object
+    const replyEmail: Email = {
+      id: response.data.messageId || response.data.id,
+      mailboxId: 'SENT',
+      from: { email: '', name: 'You' },
+      to: [], // Would need to fetch original email to get proper recipient
+      subject: 'Re: (reply)',
+      body,
+      snippet: body.replace(/<[^>]*>/g, '').slice(0, 150),
+      timestamp: new Date().toISOString(),
+      isRead: true,
+      isStarred: false,
+      hasAttachments: false,
+    };
+
+    return replyEmail;
+  },
+
+  /**
+   * Bulk delete emails (move to trash - implemented as sequential calls)
    */
   async bulkDelete(emailIds: string[]): Promise<void> {
-    // Execute delete operations sequentially
+    // Execute trash operations sequentially (use trash instead of permanent delete)
     for (const emailId of emailIds) {
       try {
-        await this.deleteEmail(emailId);
+        await this.trashEmail(emailId);
       } catch (error) {
-        console.error(`Failed to delete email ${emailId}:`, error);
+        console.error(`Failed to trash email ${emailId}:`, error);
         // Continue with other emails even if one fails
       }
     }
