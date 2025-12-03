@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { mockEmailService } from '@/services/mockEmailService';
+import { emailService } from '@/services/emailService';
 
 export const useEmails = (mailboxId: string) => {
   return useQuery({
     queryKey: ['emails', mailboxId],
-    queryFn: () => mockEmailService.getEmailsByMailbox(mailboxId),
+    queryFn: () => emailService.getEmailsByMailbox(mailboxId),
     enabled: !!mailboxId,
   });
 };
