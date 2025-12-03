@@ -44,8 +44,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     try {
       // Import dynamically to avoid circular dependency
-      const { mockAuthService } = await import('@/services/mockAuthService');
-      const response = await mockAuthService.refreshToken({ refreshToken });
+      const { authService } = await import('@/services/authService');
+      const response = await authService.refreshToken({ refreshToken });
 
       setAccessToken(response.accessToken);
       setTokenExpiresAt(response.expiresAt);

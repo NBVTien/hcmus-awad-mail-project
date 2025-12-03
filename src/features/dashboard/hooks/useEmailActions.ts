@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
-import { mockEmailService } from '@/services/mockEmailService';
+import { emailService } from '@/services/emailService';
 import { queryClient } from '@/lib/queryClient';
 import { showSuccess, showError } from '@/lib/toast';
 
 export function useEmailActions() {
     const toggleStar = useMutation({
         mutationFn: ({ emailId, isStarred }: { emailId: string; isStarred: boolean }) =>
-            mockEmailService.updateEmail(emailId, { isStarred }),
+            emailService.updateEmail(emailId, { isStarred }),
 
         // Optimistic update across all email queries
         onMutate: async ({ emailId, isStarred }) => {
@@ -56,7 +56,7 @@ export function useEmailActions() {
 
     const toggleRead = useMutation({
         mutationFn: ({ emailId, isRead }: { emailId: string; isRead: boolean }) =>
-            mockEmailService.updateEmail(emailId, { isRead }),
+            emailService.updateEmail(emailId, { isRead }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['emails'] });
             queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
@@ -66,7 +66,7 @@ export function useEmailActions() {
     });
 
     const deleteEmail = useMutation({
-        mutationFn: (emailId: string) => mockEmailService.deleteEmail(emailId),
+        mutationFn: (emailId: string) => emailService.deleteEmail(emailId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['emails'] });
             queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
