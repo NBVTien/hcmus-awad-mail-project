@@ -1,6 +1,6 @@
-import { LoginForm } from './LoginForm';
+// import { LoginForm } from './LoginForm';
 import { OAuthButton } from './OAuthButton';
-import { Separator } from '@/components/ui/separator';
+// import { Separator } from '@/components/ui/separator';
 
 export const LoginPage = () => {
   return (
@@ -14,7 +14,7 @@ export const LoginPage = () => {
         </div>
 
         <div className="space-y-4">
-          <LoginForm />
+          {/* <LoginForm />
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -23,13 +23,9 @@ export const LoginPage = () => {
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
-          </div>
+          </div> */}
 
           <OAuthButton provider="google" />
-        </div>
-
-        <div className="text-center text-sm text-muted-foreground">
-          <p>Demo mode: Use any email and password (min 8 characters)</p>
         </div>
       </div>
     </div>
