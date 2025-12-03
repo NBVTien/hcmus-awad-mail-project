@@ -4,6 +4,7 @@ import type { EmailDetailProps } from './EmailDetail.types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { EmailActionButtons } from './EmailActionButtons';
 import { useEmailActions } from '../hooks/useEmailActions';
+import { useEffect, useRef } from 'react';
 
 const formatFullTimestamp = (timestamp: string): string => {
   const date = new Date(timestamp);
@@ -32,6 +33,34 @@ export const EmailDetail = ({
   onForward,
 }: EmailDetailProps) => {
   const { toggleStar, toggleRead, deleteEmail } = useEmailActions();
+  const markAsReadTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const markedEmailsRef = useRef<Set<string>>(new Set());
+
+  // Auto-mark email as read after viewing for a few seconds
+  useEffect(() => {
+    // Clear any existing timer
+    if (markAsReadTimerRef.current) {
+      clearTimeout(markAsReadTimerRef.current);
+      markAsReadTimerRef.current = null;
+    }
+
+    // If email is loaded, unread, and hasn't been marked yet
+    if (email && !email.isRead && !markedEmailsRef.current.has(email.id)) {
+      markAsReadTimerRef.current = setTimeout(() => {
+        toggleRead.mutate({ emailId: email.id, isRead: true });
+        markedEmailsRef.current.add(email.id);
+      }, 3000); // Mark as read after 3 seconds
+    }
+
+    // Cleanup timer on unmount or when email changes
+    return () => {
+      if (markAsReadTimerRef.current) {
+        clearTimeout(markAsReadTimerRef.current);
+        markAsReadTimerRef.current = null;
+      }
+    };
+  }, [email?.id, email?.isRead, toggleRead]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -49,7 +78,7 @@ export const EmailDetail = ({
   }
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full w-full">
       <div className="p-6 space-y-4">
         {/* Action buttons */}
         {email && (
