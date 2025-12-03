@@ -63,10 +63,10 @@ export const AppSidebar = ({
                         isActive={selectedMailboxId === mailbox.id}
                         className="w-full"
                       >
-                        <span className="flex items-center justify-between w-full">
-                          <span>{mailbox.name}</span>
+                        <span className="flex items-center justify-between w-full gap-2 min-w-0">
+                          <span className="truncate">{mailbox.name}</span>
                           {mailbox.unreadCount > 0 && (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground flex-shrink-0">
                               {mailbox.unreadCount}
                             </span>
                           )}

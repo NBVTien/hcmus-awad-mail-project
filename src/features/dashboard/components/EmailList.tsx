@@ -29,44 +29,56 @@ const EmailListItem = ({
   showCheckbox,
 }: EmailListItemProps) => {
   return (
-    <button
-      onClick={onClick}
+    <div
       className={cn(
-        'w-full text-left px-4 py-3 transition-colors border-l-2',
-        'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'w-full text-left px-4 py-3 transition-colors border-l-2 cursor-pointer',
+        'hover:bg-accent',
         isSelected ? 'bg-accent border-primary' : 'border-transparent',
         !email.isRead && 'font-semibold'
       )}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       aria-current={isSelected ? 'true' : undefined}
     >
       <div className="flex items-start gap-3">
         {showCheckbox && onToggleCheck && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleCheck(email.id, e);
-            }}
-            className="pt-0.5"
-          >
-            <Checkbox checked={isChecked} aria-label={`Select ${email.subject}`} />
+          <div className="flex flex-col items-center gap-1 pt-0.5">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCheck(email.id, e);
+              }}
+            >
+              <Checkbox checked={isChecked} aria-label={`Select ${email.subject}`} />
+            </div>
+            {!email.isRead && (
+              <div className="w-2 h-2 rounded-full bg-blue-500" aria-label="Unread" />
+            )}
           </div>
         )}
 
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {email.isStarred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
-              <span className="text-sm truncate">{email.from.name || email.from.email}</span>
+              <span className="text-sm truncate min-w-0">{email.from.name || email.from.email}</span>
             </div>
-            <span className="text-xs text-muted-foreground flex-shrink-0">
+            <span className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
               {formatTimestamp(email.timestamp)}
             </span>
           </div>
-          <div className="text-sm truncate">{email.subject || '(No subject)'}</div>
-          <div className="text-xs text-muted-foreground truncate">{email.snippet}</div>
+          <div className="text-sm truncate min-w-0">{email.subject || '(No subject)'}</div>
+          <div className="text-xs text-muted-foreground truncate min-w-0">{email.snippet}</div>
         </div>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -96,20 +108,20 @@ export const EmailList = ({
   }
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full w-full">
       <div className="divide-y">
-        {emails.map((email) => (
-          <div key={email.id}>
-            <EmailListItem
-              email={email}
-              isSelected={selectedEmailId === email.id}
-              onClick={() => onSelectEmail(email.id)}
-              isChecked={selectedIds?.has(email.id)}
-              onToggleCheck={onToggleSelect}
-              showCheckbox={showCheckboxes}
-            />
-          </div>
-        ))}
+          {emails.map((email) => (
+            <div key={email.id}>
+              <EmailListItem
+                email={email}
+                isSelected={selectedEmailId === email.id}
+                onClick={() => onSelectEmail(email.id)}
+                isChecked={selectedIds?.has(email.id)}
+                onToggleCheck={onToggleSelect}
+                showCheckbox={showCheckboxes}
+              />
+            </div>
+          ))}
       </div>
     </ScrollArea>
   );
