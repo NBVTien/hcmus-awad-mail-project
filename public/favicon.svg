@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGradient)"/>
+
+  <!-- Envelope back -->
+  <rect x="15" y="30" width="70" height="45" rx="4" fill="#ffffff"/>
+
+  <!-- Envelope back flap shadows -->
+  <path d="M 15 30 L 50 57 L 85 30" fill="#e2e8f0" opacity="0.5"/>
+
+  <!-- Envelope sides -->
+  <path d="M 15 30 L 15 75 L 50 57 Z" fill="#f1f5f9"/>
+  <path d="M 85 30 L 85 75 L 50 57 Z" fill="#f1f5f9"/>
+
+  <!-- Envelope bottom -->
+  <rect x="15" y="57" width="70" height="18" fill="#ffffff"/>
+
+  <!-- Front flap (triangle) -->
+  <path d="M 15 30 L 50 57 L 85 30 Z" fill="#60a5fa" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Envelope outline -->
+  <rect x="15" y="30" width="70" height="45" rx="4" fill="none" stroke="#1e40af" stroke-width="2.5"/>
+
+  <!-- Decorative mail icon inside -->
+  <circle cx="50" cy="52" r="8" fill="#3b82f6" opacity="0.2"/>
+  <path d="M 45 52 L 50 56 L 55 52" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+</svg>
