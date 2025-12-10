@@ -10,10 +10,10 @@ export const EmailSummary = ({ emailId }: EmailSummaryProps) => {
   const { generateSummary } = useEmailSummary();
 
   const handleGenerate = () => {
-    // Hardcoded options: medium length, formal tone
     const options = {
       length: 'medium' as const,
       tone: 'formal' as const,
+      provider: 'google' as const,
     };
 
     generateSummary.mutate(
