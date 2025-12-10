@@ -1,11 +1,21 @@
 import React, { useEffect } from 'react';
-import { useCompose } from '../hooks/useCompose';
 import { useForm } from 'react-hook-form';
+import { useCompose } from '@/features/dashboard/hooks/useCompose';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { showError } from '@/lib/toast';
 import { htmlToPlainText } from '@/lib/htmlUtils';
 import type { Email } from '@/types/email.types';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
@@ -119,8 +129,6 @@ export const ComposeModal: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, mode, originalEmail, reset, setFocus]);
 
-  if (!isOpen) return null;
-
   const onSubmit = async (data: FormValues) => {
     try {
       const tos = data.to.split(',').map((s) => s.trim()).filter(Boolean);
@@ -137,79 +145,74 @@ export const ComposeModal: React.FC<Props> = ({
     }
   };
 
+  const handleClose = () => {
+    if (isSubmitting) return;
+    if (isDirty && !confirm('Discard unsaved changes?')) return;
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-      <div className="absolute inset-0 bg-black/40" onClick={() => {
-        if (isSubmitting) return;
-        if (isDirty) {
-          if (!confirm('Discard unsaved changes?')) return;
-        }
-        onClose();
-      }} />
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 z-10"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>
             {mode === 'reply' && 'Reply'}
             {mode === 'replyAll' && 'Reply All'}
             {mode === 'forward' && 'Forward'}
             {mode === 'compose' && 'Compose'}
-          </h2>
-          <button
-            type="button"
-            onClick={() => {
-              if (isSubmitting) return;
-              if (isDirty && !confirm('Discard unsaved changes?')) return;
-              onClose();
-            }}
-            className="text-sm text-muted-foreground"
-          >
-            Close
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm">To</label>
-            <input
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="to">To</Label>
+            <Input
+              id="to"
               {...register('to')}
-              className="w-full border rounded px-2 py-1"
               placeholder="comma-separated emails"
+              aria-invalid={!!errors.to}
             />
-            {errors.to && <p className="text-sm text-red-600">{errors.to.message}</p>}
+            {errors.to && (
+              <p className="text-sm text-destructive">{errors.to.message}</p>
+            )}
           </div>
 
-          <div>
-            <label className="text-sm">Subject</label>
-            <input {...register('subject')} className="w-full border rounded px-2 py-1" />
-            {errors.subject && <p className="text-sm text-red-600">{errors.subject.message}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="subject">Subject</Label>
+            <Input
+              id="subject"
+              {...register('subject')}
+              aria-invalid={!!errors.subject}
+            />
+            {errors.subject && (
+              <p className="text-sm text-destructive">{errors.subject.message}</p>
+            )}
           </div>
 
-          <div>
-            <label className="text-sm">Message</label>
-            <textarea {...register('body')} className="w-full border rounded px-2 py-1 h-40" />
+          <div className="space-y-2">
+            <Label htmlFor="body">Message</Label>
+            <Textarea
+              id="body"
+              {...register('body')}
+              className="min-h-[200px] resize-none"
+            />
           </div>
 
-          <div className="flex items-center justify-end gap-2">
-            <button
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
               type="button"
-              onClick={() => {
-                if (isSubmitting) return;
-                if (isDirty && !confirm('Discard unsaved changes?')) return;
-                onClose();
-              }}
-              className="px-3 py-1 rounded bg-slate-100 text-slate-800"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting} className="px-3 py-1 rounded bg-primary text-white">
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Sending…' : 'Send'}
-            </button>
+            </Button>
           </div>
-        </div>
-      </form>
-    </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
