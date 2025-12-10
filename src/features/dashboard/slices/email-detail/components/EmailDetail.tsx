@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { EmailActionButtons } from './EmailActionButtons';
 import { SnoozeDialog } from './SnoozeDialog';
 import { EmailBodyRenderer } from './EmailBodyRenderer';
+import { EmailSummary } from './EmailSummary';
 import { useEmailActions } from '@/features/dashboard/hooks/useEmailActions';
 
 const formatFullTimestamp = (timestamp: string): string => {
@@ -164,6 +165,11 @@ export const EmailDetail = ({
             </div>
           </div>
         </div>
+
+        <Separator />
+
+        {/* AI Summary */}
+        <EmailSummary emailId={email.id} />
 
         <Separator />
 
