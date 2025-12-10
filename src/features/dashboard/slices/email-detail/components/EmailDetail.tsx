@@ -2,10 +2,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { EmailDetailProps } from './EmailDetail.types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useEffect, useRef, useState } from 'react';
 import { EmailActionButtons } from './EmailActionButtons';
-import { useEmailActions } from '../hooks/useEmailActions';
-import { useEffect, useRef } from 'react';
+import { SnoozeDialog } from './SnoozeDialog';
 import { EmailBodyRenderer } from './EmailBodyRenderer';
+import { EmailSummary } from './EmailSummary';
+import { useEmailActions } from '@/features/dashboard/hooks/useEmailActions';
 
 const formatFullTimestamp = (timestamp: string): string => {
   const date = new Date(timestamp);
@@ -36,6 +38,10 @@ export const EmailDetail = ({
   const { toggleStar, toggleRead, deleteEmail } = useEmailActions();
   const markAsReadTimerRef = useRef<number | null>(null);
   const markedEmailsRef = useRef<Set<string>>(new Set());
+  const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
+  const [emailToSnooze, setEmailToSnooze] = useState<{ id: string; gmailMessageId: string } | null>(
+    null
+  );
 
   // Auto-mark email as read after viewing for a few seconds
   useEffect(() => {
@@ -60,7 +66,7 @@ export const EmailDetail = ({
         markAsReadTimerRef.current = null;
       }
     };
-  }, [email?.id, email?.isRead, toggleRead]);
+  }, [email, toggleRead]);
 
   if (isLoading) {
     return (
@@ -86,6 +92,7 @@ export const EmailDetail = ({
           <div className="flex items-center justify-end">
             <EmailActionButtons
               emailId={email.id}
+              gmailMessageId={email.id}
               isStarred={!!email.isStarred}
               onToggleStar={(id, next) => toggleStar.mutate({ emailId: id, isStarred: next })}
               onDelete={(id) =>
@@ -100,6 +107,10 @@ export const EmailDetail = ({
               }
               onMarkUnread={(id) => {
                 toggleRead.mutate({ emailId: id, isRead: false });
+              }}
+              onSnooze={() => {
+                setEmailToSnooze({ id: email.id, gmailMessageId: email.id });
+                setSnoozeDialogOpen(true);
               }}
               onReply={onReply}
               onReplyAll={onReplyAll}
@@ -157,6 +168,11 @@ export const EmailDetail = ({
 
         <Separator />
 
+        {/* AI Summary */}
+        <EmailSummary emailId={email.id} />
+
+        <Separator />
+
         {/* Email Body */}
         <div className="max-w-none">
           <EmailBodyRenderer body={email.body} />
@@ -180,7 +196,7 @@ export const EmailDetail = ({
                       <span className="text-sm truncate">{attachment.filename}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {formatFileSize(attachment.size)}
                       </span>
                       <button
@@ -205,6 +221,27 @@ export const EmailDetail = ({
           </>
         )}
       </div>
+
+      {/* Snooze Dialog */}
+      {emailToSnooze && (
+        <SnoozeDialog
+          isOpen={snoozeDialogOpen}
+          onClose={() => {
+            setSnoozeDialogOpen(false);
+            setEmailToSnooze(null);
+          }}
+          emailId={emailToSnooze.id}
+          gmailMessageId={emailToSnooze.gmailMessageId}
+          onSnoozeSuccess={() => {
+            setSnoozeDialogOpen(false);
+            setEmailToSnooze(null);
+            // Optionally close the email detail or navigate away
+            if (onDeleteSuccess) {
+              onDeleteSuccess();
+            }
+          }}
+        />
+      )}
     </ScrollArea>
   );
 };
