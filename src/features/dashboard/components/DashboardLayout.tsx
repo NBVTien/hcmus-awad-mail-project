@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { ComposeModal } from './ComposeModal';
 import { AppSidebar } from './AppSidebar';
@@ -6,6 +6,7 @@ import { EmailList } from './EmailList';
 import { EmailDetail } from './EmailDetail';
 import { BulkActionToolbar } from './BulkActionToolbar';
 import { PaginationControls } from './PaginationControls';
+import { KanbanBoardView } from './KanbanBoardView';
 import { useMailboxes } from '../hooks/useMailboxes';
 import { useEmails } from '../hooks/useEmails';
 import { useEmailDetail } from '../hooks/useEmailDetail';
@@ -34,8 +35,19 @@ export const DashboardLayout = () => {
     count: 0,
   });
 
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(() => {
+    const saved = localStorage.getItem(`view-mode-${selectedMailboxId}`);
+    return (saved as 'list' | 'kanban') || 'list';
+  });
+
   // Pagination state
   const [page, setPage] = useState(1);
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem(`view-mode-${selectedMailboxId}`, viewMode);
+  }, [viewMode, selectedMailboxId]);
 
   // Fetch data
   const mailboxesQuery = useMailboxes();
@@ -66,6 +78,10 @@ export const DashboardLayout = () => {
     setSelectedEmailId(null);
     setEmailSelection({ selectedIds: new Set(), selectAll: false, count: 0 });
     resetPage();
+
+    // Load view mode preference for new mailbox
+    const saved = localStorage.getItem(`view-mode-${mailboxId}`);
+    setViewMode((saved as 'list' | 'kanban') || 'list');
   };
 
   // Toggle individual email selection
@@ -165,11 +181,14 @@ export const DashboardLayout = () => {
         selectedMailboxId={selectedMailboxId}
         onSelectMailbox={handleSelectMailbox}
         isLoading={mailboxesQuery.isLoading}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       {/* Main content area */}
       <SidebarInset className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
+        {viewMode === 'list' ? (
+          <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Email List Column */}
           <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
             <div className="border-r h-full flex flex-col overflow-hidden">
@@ -267,6 +286,15 @@ export const DashboardLayout = () => {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+        ) : (
+          <KanbanBoardView
+            mailboxId={selectedMailboxId}
+            onComposeClick={() => {
+              setComposeMode('compose');
+              setComposeOpen(true);
+            }}
+          />
+        )}
       </SidebarInset>
 
       <ErrorBoundary>

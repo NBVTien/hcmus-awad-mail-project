@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import type { OAuthButtonProps } from './OAuthButton.types';
-import { authService } from '@/services/authService';
 
 export const OAuthButton = ({ onError }: OAuthButtonProps) => {
   const handleOAuthLogin = async () => {
@@ -10,6 +9,7 @@ export const OAuthButton = ({ onError }: OAuthButtonProps) => {
         import.meta.env.VITE_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
 
       // Call backend to get Gmail OAuth URL
+      const { authService } = await import('@/services/authService');
       const { authorizationUrl } = await authService.initiateGoogleAuth({
         redirectUri,
       });
