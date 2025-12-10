@@ -13,7 +13,7 @@ export const EmailSummary = ({ emailId }: EmailSummaryProps) => {
     const options = {
       length: 'medium' as const,
       tone: 'formal' as const,
-      provider: 'google' as const,
+      provider: 'gemini' as const,
     };
 
     generateSummary.mutate(
