@@ -1,13 +1,15 @@
 import React from 'react';
-import { Reply, ReplyAll, Forward, Star, Trash2, MailOpen } from 'lucide-react';
+import { Reply, ReplyAll, Forward, Star, Trash2, MailOpen, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type Props = {
   emailId: string;
+  gmailMessageId?: string;
   isStarred: boolean;
   onToggleStar: (id: string, next: boolean) => void;
   onDelete: (id: string) => void;
   onMarkUnread: (id: string) => void;
+  onSnooze?: () => void;
   onReply?: () => void;
   onReplyAll?: () => void;
   onForward?: () => void;
@@ -15,10 +17,12 @@ type Props = {
 
 export const EmailActionButtons: React.FC<Props> = ({
   emailId,
+  gmailMessageId,
   isStarred,
   onToggleStar,
   onDelete,
   onMarkUnread,
+  onSnooze,
   onReply,
   onReplyAll,
   onForward,
@@ -67,6 +71,17 @@ export const EmailActionButtons: React.FC<Props> = ({
       >
         <Star className={`h-4 w-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
       </Button>
+
+      {onSnooze && gmailMessageId && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSnooze}
+          aria-label="Snooze"
+        >
+          <Clock className="h-4 w-4" />
+        </Button>
+      )}
 
       <Button
         variant="outline"

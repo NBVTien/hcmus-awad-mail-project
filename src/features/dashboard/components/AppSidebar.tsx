@@ -1,4 +1,4 @@
-import { LogOut, Mail } from 'lucide-react';
+import { LogOut, Mail, List, LayoutGrid } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,6 +23,8 @@ interface AppSidebarProps {
   selectedMailboxId: string;
   onSelectMailbox: (mailboxId: string) => void;
   isLoading?: boolean;
+  viewMode: 'list' | 'kanban';
+  onViewModeChange: (mode: 'list' | 'kanban') => void;
 }
 
 export const AppSidebar = ({
@@ -30,6 +32,8 @@ export const AppSidebar = ({
   selectedMailboxId,
   onSelectMailbox,
   isLoading,
+  viewMode,
+  onViewModeChange,
 }: AppSidebarProps) => {
   const { user, logout } = useAuth();
 
@@ -47,6 +51,32 @@ export const AppSidebar = ({
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>View Mode</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="flex gap-2 px-2 py-2">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onViewModeChange('list')}
+                className="flex-1"
+              >
+                <List className="h-4 w-4 mr-2" />
+                List
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onViewModeChange('kanban')}
+                className="flex-1"
+              >
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Kanban
+              </Button>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>Mailboxes</SidebarGroupLabel>
           <SidebarGroupContent>
