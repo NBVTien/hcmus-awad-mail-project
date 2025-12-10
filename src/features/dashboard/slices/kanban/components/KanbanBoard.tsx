@@ -80,20 +80,22 @@ export const KanbanBoard = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <ScrollArea className="h-full w-full">
-        <div className="flex gap-4 p-4 h-full min-w-max">
-          {columns.map((column) => (
-            <KanbanColumn
-              key={column.id}
-              column={column}
-              cards={column.cards || []}
-              selectedEmailId={selectedEmailId}
-              onSelectEmail={onSelectEmail}
-            />
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      <div className="h-full w-full">
+        <ScrollArea className="h-full w-full">
+          <div className="flex gap-4 p-4 min-w-max h-[calc(100vh-60px)]">
+            {columns.map((column) => (
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                cards={column.cards || []}
+                selectedEmailId={selectedEmailId}
+                onSelectEmail={onSelectEmail}
+              />
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
 
       <DragOverlay>
         {activeCard && activeCard.email && (

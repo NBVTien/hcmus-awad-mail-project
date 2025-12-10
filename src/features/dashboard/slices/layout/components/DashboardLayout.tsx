@@ -21,6 +21,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import type { EmailSelection } from '@/types/email.types';
+import { Button } from '@/components/ui/button';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
@@ -206,15 +207,14 @@ export const DashboardLayout = () => {
                 </button>
               </div>
 
-              <button
+              <Button
                 onClick={() => {
                   setComposeMode('compose');
                   setComposeOpen(true);
                 }}
-                className="px-3 py-1 rounded bg-primary text-white hover:bg-primary/90"
               >
                 Compose
-              </button>
+              </Button>
             </div>
 
             {/* Bulk Action Toolbar */}

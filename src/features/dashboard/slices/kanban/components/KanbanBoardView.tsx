@@ -6,6 +6,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
 import { useKanbanBoard } from '@/features/dashboard/hooks/useKanbanBoard';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
+import { Button } from '@/components/ui/button';
 
 interface KanbanBoardViewProps {
   mailboxId: string;
@@ -27,7 +28,7 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-screen flex flex-col">
       <div className="flex items-center justify-between px-4 py-2 border-b">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
@@ -41,12 +42,9 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
           </button>
         </div>
 
-        <button
-          onClick={onComposeClick}
-          className="px-3 py-1 rounded bg-primary text-white hover:bg-primary/90"
-        >
+        <Button onClick={onComposeClick} >
           Compose
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -59,8 +57,8 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
         />
       </div>
 
-      <Sheet open={!!selectedEmailId} onOpenChange={(open) => !open && handleCloseDetail()}>
-        <SheetContent side="right" className="w-full sm:w-[600px] p-0 overflow-y-auto">
+      <Sheet open={Boolean(selectedEmailId)} onOpenChange={(open) => !open && handleCloseDetail()}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 overflow-y-auto">
           <EmailDetail
             email={emailDetailQuery.data || null}
             isLoading={emailDetailQuery.isLoading}

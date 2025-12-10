@@ -40,28 +40,54 @@ export const useKanbanBoard = (mailboxId: string) => {
 
       // Optimistically update the board
       if (previousBoard) {
-        const newBoard = previousBoard.map((column) => {
-          if (column.id === params.fromColumnId) {
-            // Remove card from source column
-            return {
-              ...column,
-              cards: column.cards?.filter((card) => card.emailId !== params.emailId) || [],
-            };
+        // Find the card being moved
+        let movedCard = null;
+        for (const column of previousBoard) {
+          const card = column.cards?.find((c) => c.emailId === params.emailId);
+          if (card) {
+            movedCard = card;
+            break;
           }
-          if (column.id === params.toColumnId) {
-            // Add card to destination column
-            const newCard = {
-              id: `temp-${params.emailId}`,
-              emailId: params.emailId,
-              columnId: params.toColumnId,
-              order: params.order,
-            };
-            const cards = [...(column.cards || []), newCard];
-            return { ...column, cards };
-          }
-          return column;
-        });
-        queryClient.setQueryData(['kanban-board', mailboxId], newBoard);
+        }
+
+        if (movedCard) {
+          const newBoard = previousBoard.map((column) => {
+            if (column.id === params.fromColumnId) {
+              // Remove card from source column
+              return {
+                ...column,
+                cards: column.cards?.filter((card) => card.emailId !== params.emailId) || [],
+              };
+            }
+            if (column.id === params.toColumnId) {
+              // Add card to destination column only if it doesn't already exist
+              const existingCards = column.cards || [];
+              const cardExists = existingCards.some((card) => card.emailId === params.emailId);
+
+              if (cardExists) {
+                // Update existing card
+                return {
+                  ...column,
+                  cards: existingCards.map((card) =>
+                    card.emailId === params.emailId
+                      ? { ...card, columnId: params.toColumnId, order: params.order }
+                      : card
+                  ),
+                };
+              } else {
+                // Add new card with full data
+                const newCard = {
+                  ...movedCard,
+                  columnId: params.toColumnId,
+                  order: params.order,
+                };
+                return { ...column, cards: [...existingCards, newCard] };
+              }
+            }
+            return column;
+          });
+          queryClient.setQueryData(['kanban-board', mailboxId], newBoard);
+        }
       }
 
       return { previousBoard };

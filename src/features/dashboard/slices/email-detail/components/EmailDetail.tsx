@@ -190,7 +190,7 @@ export const EmailDetail = ({
                       <span className="text-sm truncate">{attachment.filename}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {formatFileSize(attachment.size)}
                       </span>
                       <button
