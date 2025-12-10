@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { ComposeModal } from './ComposeModal';
+import { ComposeModal } from '@/features/dashboard/slices/compose/components';
 import { AppSidebar } from './AppSidebar';
-import { EmailList } from './EmailList';
-import { EmailDetail } from './EmailDetail';
-import { BulkActionToolbar } from './BulkActionToolbar';
-import { PaginationControls } from './PaginationControls';
-import { useMailboxes } from '../hooks/useMailboxes';
-import { useEmails } from '../hooks/useEmails';
-import { useEmailDetail } from '../hooks/useEmailDetail';
-import { useKeyboardNav } from '../hooks/useKeyboardNav';
-import { useBulkSelection } from '../hooks/useBulkSelection';
+import { EmailList } from '@/features/dashboard/slices/email-list/components';
+import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
+import { BulkActionToolbar } from '@/features/dashboard/slices/email-list/components';
+import { PaginationControls } from '@/features/dashboard/slices/email-list/components';
+import { KanbanBoardView } from '@/features/dashboard/slices/kanban/components';
+import { useMailboxes } from '@/features/dashboard/hooks/useMailboxes';
+import { useEmails } from '@/features/dashboard/hooks/useEmails';
+import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
+import { useKeyboardNav } from '@/features/dashboard/hooks/useKeyboardNav';
+import { useBulkSelection } from '@/features/dashboard/hooks/useBulkSelection';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -20,6 +21,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import type { EmailSelection } from '@/types/email.types';
+import { Button } from '@/components/ui/button';
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
@@ -34,8 +36,19 @@ export const DashboardLayout = () => {
     count: 0,
   });
 
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(() => {
+    const saved = localStorage.getItem(`view-mode-${selectedMailboxId}`);
+    return (saved as 'list' | 'kanban') || 'list';
+  });
+
   // Pagination state
   const [page, setPage] = useState(1);
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem(`view-mode-${selectedMailboxId}`, viewMode);
+  }, [viewMode, selectedMailboxId]);
 
   // Fetch data
   const mailboxesQuery = useMailboxes();
@@ -66,6 +79,10 @@ export const DashboardLayout = () => {
     setSelectedEmailId(null);
     setEmailSelection({ selectedIds: new Set(), selectAll: false, count: 0 });
     resetPage();
+
+    // Load view mode preference for new mailbox
+    const saved = localStorage.getItem(`view-mode-${mailboxId}`);
+    setViewMode((saved as 'list' | 'kanban') || 'list');
   };
 
   // Toggle individual email selection
@@ -165,11 +182,14 @@ export const DashboardLayout = () => {
         selectedMailboxId={selectedMailboxId}
         onSelectMailbox={handleSelectMailbox}
         isLoading={mailboxesQuery.isLoading}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       {/* Main content area */}
       <SidebarInset className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
+        {viewMode === 'list' ? (
+          <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Email List Column */}
           <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
             <div className="border-r h-full flex flex-col overflow-hidden">
@@ -187,15 +207,14 @@ export const DashboardLayout = () => {
                 </button>
               </div>
 
-              <button
+              <Button
                 onClick={() => {
                   setComposeMode('compose');
                   setComposeOpen(true);
                 }}
-                className="px-3 py-1 rounded bg-primary text-white hover:bg-primary/90"
               >
                 Compose
-              </button>
+              </Button>
             </div>
 
             {/* Bulk Action Toolbar */}
@@ -267,6 +286,15 @@ export const DashboardLayout = () => {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+        ) : (
+          <KanbanBoardView
+            mailboxId={selectedMailboxId}
+            onComposeClick={() => {
+              setComposeMode('compose');
+              setComposeOpen(true);
+            }}
+          />
+        )}
       </SidebarInset>
 
       <ErrorBoundary>
