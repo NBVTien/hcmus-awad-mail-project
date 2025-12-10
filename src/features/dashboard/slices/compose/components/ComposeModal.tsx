@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useCompose } from '../hooks/useCompose';
 import { useForm } from 'react-hook-form';
+import { useCompose } from '@/features/dashboard/hooks/useCompose';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { showError } from '@/lib/toast';
