@@ -3,8 +3,9 @@ import { Separator } from '@/components/ui/separator';
 import type { EmailDetailProps } from './EmailDetail.types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { EmailActionButtons } from './EmailActionButtons';
+import { SnoozeDialog } from './SnoozeDialog';
 import { useEmailActions } from '../hooks/useEmailActions';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EmailBodyRenderer } from './EmailBodyRenderer';
 
 const formatFullTimestamp = (timestamp: string): string => {
@@ -36,6 +37,10 @@ export const EmailDetail = ({
   const { toggleStar, toggleRead, deleteEmail } = useEmailActions();
   const markAsReadTimerRef = useRef<number | null>(null);
   const markedEmailsRef = useRef<Set<string>>(new Set());
+  const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
+  const [emailToSnooze, setEmailToSnooze] = useState<{ id: string; gmailMessageId: string } | null>(
+    null
+  );
 
   // Auto-mark email as read after viewing for a few seconds
   useEffect(() => {
@@ -60,7 +65,7 @@ export const EmailDetail = ({
         markAsReadTimerRef.current = null;
       }
     };
-  }, [email?.id, email?.isRead, toggleRead]);
+  }, [email, toggleRead]);
 
   if (isLoading) {
     return (
@@ -86,6 +91,7 @@ export const EmailDetail = ({
           <div className="flex items-center justify-end">
             <EmailActionButtons
               emailId={email.id}
+              gmailMessageId={email.id}
               isStarred={!!email.isStarred}
               onToggleStar={(id, next) => toggleStar.mutate({ emailId: id, isStarred: next })}
               onDelete={(id) =>
@@ -100,6 +106,10 @@ export const EmailDetail = ({
               }
               onMarkUnread={(id) => {
                 toggleRead.mutate({ emailId: id, isRead: false });
+              }}
+              onSnooze={() => {
+                setEmailToSnooze({ id: email.id, gmailMessageId: email.id });
+                setSnoozeDialogOpen(true);
               }}
               onReply={onReply}
               onReplyAll={onReplyAll}
@@ -205,6 +215,27 @@ export const EmailDetail = ({
           </>
         )}
       </div>
+
+      {/* Snooze Dialog */}
+      {emailToSnooze && (
+        <SnoozeDialog
+          isOpen={snoozeDialogOpen}
+          onClose={() => {
+            setSnoozeDialogOpen(false);
+            setEmailToSnooze(null);
+          }}
+          emailId={emailToSnooze.id}
+          gmailMessageId={emailToSnooze.gmailMessageId}
+          onSnoozeSuccess={() => {
+            setSnoozeDialogOpen(false);
+            setEmailToSnooze(null);
+            // Optionally close the email detail or navigate away
+            if (onDeleteSuccess) {
+              onDeleteSuccess();
+            }
+          }}
+        />
+      )}
     </ScrollArea>
   );
 };
