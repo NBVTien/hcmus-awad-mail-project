@@ -33,8 +33,7 @@ export const KanbanCardItem = ({ card, columnId, isSelected, onClick }: KanbanCa
       onClick={onClick}
       className={cn(
         'p-3 bg-card border rounded-lg shadow-sm transition-all cursor-pointer',
-        'hover:shadow-md',
-        'w-full max-w-full',
+        'hover:shadow-md w-[296px]',
         isSelected && 'ring-2 ring-primary bg-accent',
         isDragging && 'opacity-50'
       )}
