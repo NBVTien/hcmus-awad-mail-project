@@ -2,11 +2,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { EmailDetailProps } from './EmailDetail.types';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useEffect, useRef, useState } from 'react';
 import { EmailActionButtons } from './EmailActionButtons';
 import { SnoozeDialog } from './SnoozeDialog';
-import { useEmailActions } from '../hooks/useEmailActions';
-import { useEffect, useRef, useState } from 'react';
 import { EmailBodyRenderer } from './EmailBodyRenderer';
+import { useEmailActions } from '@/features/dashboard/hooks/useEmailActions';
 
 const formatFullTimestamp = (timestamp: string): string => {
   const date = new Date(timestamp);

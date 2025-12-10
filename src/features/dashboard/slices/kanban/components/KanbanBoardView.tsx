@@ -3,9 +3,9 @@ import { RefreshCw } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { KanbanBoard } from './KanbanBoard';
-import { EmailDetail } from './EmailDetail';
-import { useKanbanBoard } from '../hooks/useKanbanBoard';
-import { useEmailDetail } from '../hooks/useEmailDetail';
+import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
+import { useKanbanBoard } from '@/features/dashboard/hooks/useKanbanBoard';
+import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
 
 interface KanbanBoardViewProps {
   mailboxId: string;

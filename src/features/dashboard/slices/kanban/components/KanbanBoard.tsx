@@ -10,11 +10,11 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCardItem } from './KanbanCardItem';
 import type { KanbanBoardProps } from './KanbanBoard.types';
 import type { KanbanCard } from '@/types/kanban.types';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export const KanbanBoard = ({
   columns,
