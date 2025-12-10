@@ -103,7 +103,7 @@ export interface SummaryOptions {
   length?: 'short' | 'medium' | 'long';
   tone?: 'formal' | 'casual' | 'technical';
   customInstructions?: string;
-  provider?: 'openai' | 'gemini';
+  provider?: string;
 }
 
 export interface EmailSummary {
