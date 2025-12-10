@@ -382,4 +382,20 @@ export const emailService = {
   async cancelSnooze(snoozeId: string): Promise<void> {
     await apiClient.post(`/emails/snoozed/${snoozeId}/cancel`);
   },
+
+  /**
+   * Generate AI summary for an email
+   */
+  async generateSummary(
+    emailId: string,
+    options?: import('@/types/email.types').SummaryOptions
+  ): Promise<import('@/types/email.types').EmailSummary> {
+    const response = await apiClient.post(`/emails/${emailId}/summary`, {
+      length: options?.length || 'medium',
+      tone: options?.tone || 'formal',
+      customInstructions: options?.customInstructions,
+      provider: options?.provider,
+    });
+    return response.data;
+  },
 };
