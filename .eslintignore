@@ -20,3 +20,6 @@ logs/
 .DS_Store
 *.tmp
 *.swp
+
+# Shadcn/UI
+src/components/ui/

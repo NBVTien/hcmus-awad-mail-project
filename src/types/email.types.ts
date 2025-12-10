@@ -98,3 +98,19 @@ export interface SendEmailResponse {
   email: Email;
   success: boolean;
 }
+
+export interface SummaryOptions {
+  length?: 'short' | 'medium' | 'long';
+  tone?: 'formal' | 'casual' | 'technical';
+  customInstructions?: string;
+  provider?: string;
+}
+
+export interface EmailSummary {
+  id: string;
+  subject: string;
+  summary: string;
+  length: string;
+  tone: string;
+  provider: string;
+}

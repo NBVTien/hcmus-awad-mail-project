@@ -1,7 +1,18 @@
 import { useMutation } from '@tanstack/react-query';
+import type { QueryKey } from '@tanstack/react-query';
 import { emailService } from '@/services/emailService';
 import { queryClient } from '@/lib/queryClient';
 import { showSuccess, showError } from '@/lib/toast';
+import type { GetEmailsResponse, Email } from '@/types/email.types';
+
+interface StarContext {
+    previous: [QueryKey, unknown][];
+}
+
+interface ReadContext {
+    previousEmails: [QueryKey, unknown][];
+    previousDetail: Email | undefined;
+}
 
 export function useEmailActions() {
     const toggleStar = useMutation({
@@ -16,13 +27,11 @@ export function useEmailActions() {
 
             // Update cached queries optimistically
             previous.forEach(([key]) => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                queryClient.setQueryData(key, (old: any) => {
+                queryClient.setQueryData(key, (old: GetEmailsResponse | undefined) => {
                     if (!old || !old.emails) return old;
                     return {
                         ...old,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        emails: old.emails.map((e: any) =>
+                        emails: old.emails.map((e: Email) =>
                             e.id === emailId ? { ...e, isStarred } : e
                         ),
                     };
@@ -32,12 +41,10 @@ export function useEmailActions() {
             return { previous };
         },
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError: (_err, _vars, context: any) => {
+        onError: (_err, _vars, context: StarContext | undefined) => {
             // Rollback
             if (context?.previous) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                context.previous.forEach(([key, data]: any) => {
+                context.previous.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
@@ -67,13 +74,11 @@ export function useEmailActions() {
             // Update email list cache
             const previousEmails = queryClient.getQueriesData({ queryKey: ['emails'] });
             previousEmails.forEach(([key]) => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                queryClient.setQueryData(key, (old: any) => {
+                queryClient.setQueryData(key, (old: GetEmailsResponse | undefined) => {
                     if (!old || !old.emails) return old;
                     return {
                         ...old,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        emails: old.emails.map((e: any) =>
+                        emails: old.emails.map((e: Email) =>
                             e.id === emailId ? { ...e, isRead } : e
                         ),
                     };
@@ -81,8 +86,8 @@ export function useEmailActions() {
             });
 
             // Update email detail cache
-            const previousDetail = queryClient.getQueryData(['email', emailId]);
-            queryClient.setQueryData(['email', emailId], (old: any) => {
+            const previousDetail = queryClient.getQueryData<Email>(['email', emailId]);
+            queryClient.setQueryData(['email', emailId], (old: Email | undefined) => {
                 if (!old) return old;
                 return { ...old, isRead };
             });
@@ -90,12 +95,10 @@ export function useEmailActions() {
             return { previousEmails, previousDetail };
         },
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError: (_err, { emailId }, context: any) => {
+        onError: (_err, { emailId }, context: ReadContext | undefined) => {
             // Rollback on error
             if (context?.previousEmails) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                context.previousEmails.forEach(([key, data]: any) => {
+                context.previousEmails.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
