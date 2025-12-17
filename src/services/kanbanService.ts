@@ -88,6 +88,35 @@ class KanbanService {
   async reorderCards(columnId: string, cardIds: string[]): Promise<void> {
     await apiClient.post(`/emails/kanban/columns/${columnId}/reorder`, { cardIds });
   }
+
+  /**
+   * Get filtered and sorted cards for a column
+   * @param columnId - The column ID
+   * @param sortBy - Sort option: 'date_newest', 'date_oldest', 'sender_name', 'relevance'
+   * @param filters - Array of filters: 'unread', 'has_attachments', 'starred'
+   */
+  async getFilteredColumnCards(
+    columnId: string,
+    sortBy?: 'date_newest' | 'date_oldest' | 'sender_name' | 'relevance',
+    filters?: Array<'unread' | 'has_attachments' | 'starred'>
+  ): Promise<{
+    columnId: string;
+    sortBy: string;
+    filters: string[];
+    count: number;
+    cards: KanbanCard[];
+  }> {
+    const params = new URLSearchParams();
+    if (sortBy) params.append('sortBy', sortBy);
+    if (filters && filters.length > 0) {
+      filters.forEach(filter => params.append('filters', filter));
+    }
+
+    const response = await apiClient.get(
+      `/emails/kanban/columns/${columnId}/cards/filtered?${params.toString()}`
+    );
+    return response.data;
+  }
 }
 
 export const kanbanService = new KanbanService();
