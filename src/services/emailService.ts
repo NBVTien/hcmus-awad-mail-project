@@ -9,6 +9,7 @@ import type {
   EmailAddress,
   Attachment,
 } from '@/types/email.types';
+import type { Snooze, PaginatedResponse } from '@/types/snooze.types';
 
 /**
  * Backend email format from Gmail API
@@ -458,6 +459,117 @@ export const emailService = {
    */
   async testSmtpConfig(configId: string) {
     const response = await apiClient.post(`/emails/smtp-config/${configId}/test`);
+    return response.data;
+  },
+
+  /**
+   * Snooze an email until a specific date/time
+   */
+  async snoozeEmail(
+    gmailMessageId: string,
+    snoozeUntil: Date,
+    isRecurring?: boolean,
+    recurrencePattern?: 'DAILY' | 'WEEKLY' | 'MONTHLY',
+    reason?: string
+  ): Promise<Snooze> {
+    const response = await apiClient.post(`/emails/${gmailMessageId}/snooze`, {
+      snoozeUntil: snoozeUntil.toISOString(),
+      isRecurring,
+      recurrencePattern,
+      reason,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get all snoozed emails with pagination
+   */
+  async getSnoozedEmails(
+    page: number = 1,
+    limit: number = 50
+  ): Promise<PaginatedResponse<Snooze>> {
+    const response = await apiClient.get('/emails/snoozed/list', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get upcoming snoozed emails (within N days)
+   */
+  async getUpcomingSnoozed(daysAhead: number = 7): Promise<Snooze[]> {
+    const response = await apiClient.get('/emails/snoozed/upcoming', {
+      params: { daysAhead },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get count of snoozed emails
+   */
+  async getSnoozedCount(): Promise<number> {
+    const response = await apiClient.get('/emails/snoozed/count');
+    return response.data.count;
+  },
+
+  /**
+   * Get snooze history (all statuses)
+   */
+  async getSnoozeHistory(
+    page: number = 1,
+    limit: number = 50
+  ): Promise<PaginatedResponse<Snooze>> {
+    const response = await apiClient.get('/emails/snoozed/history', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get specific snooze details
+   */
+  async getSnoozeById(snoozeId: string): Promise<Snooze> {
+    const response = await apiClient.get(`/emails/snoozed/${snoozeId}`);
+    return response.data;
+  },
+
+  /**
+   * Update snooze time
+   */
+  async updateSnoozeTime(snoozeId: string, newSnoozeUntil: Date): Promise<Snooze> {
+    const response = await apiClient.put(`/emails/snoozed/${snoozeId}/time`, {
+      newSnoozeUntil: newSnoozeUntil.toISOString(),
+    });
+    return response.data;
+  },
+
+  /**
+   * Manually resume a snoozed email
+   */
+  async resumeSnooze(snoozeId: string): Promise<void> {
+    await apiClient.post(`/emails/snoozed/${snoozeId}/resume`);
+  },
+
+  /**
+   * Cancel a snooze
+   */
+  async cancelSnooze(snoozeId: string): Promise<void> {
+    await apiClient.post(`/emails/snoozed/${snoozeId}/cancel`);
+  },
+
+  /**
+   * Generate AI summary for an email
+   */
+  async generateSummary(
+    emailId: string,
+    options?: import('@/types/email.types').SummaryOptions
+  ): Promise<import('@/types/email.types').EmailSummary> {
+    const response = await apiClient.post(`/emails/${emailId}/summary`, {
+      length: options?.length || 'medium',
+      tone: options?.tone || 'formal',
+      customInstructions: options?.customInstructions,
+      provider: options?.provider,
+    });
     return response.data;
   },
 };
