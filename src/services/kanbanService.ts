@@ -106,14 +106,15 @@ class KanbanService {
     count: number;
     cards: KanbanCard[];
   }> {
-    const params = new URLSearchParams();
-    if (sortBy) params.append('sortBy', sortBy);
-    if (filters && filters.length > 0) {
-      filters.forEach(filter => params.append('filters', filter));
-    }
-
+    // Use axios params option which properly handles arrays
     const response = await apiClient.get(
-      `/emails/kanban/columns/${columnId}/cards/filtered?${params.toString()}`
+      `/emails/kanban/columns/${columnId}/cards/filtered`,
+      {
+        params: {
+          sortBy,
+          filters,
+        },
+      }
     );
     return response.data;
   }
