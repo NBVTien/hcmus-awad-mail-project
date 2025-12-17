@@ -20,6 +20,10 @@ export interface KanbanCard {
     preview: string;
     fromName: string;
     fromEmail: string;
+    isRead?: boolean;
+    isStarred?: boolean;
+    hasAttachments?: boolean;
+    timestamp?: string;
   };
 }
 
