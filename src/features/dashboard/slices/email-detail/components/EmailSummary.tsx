@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
 import { useEmailSummary } from '@/features/dashboard/hooks/useEmailSummary';
 import type { EmailSummaryProps } from './EmailSummary.types';
+import { getErrorMessage } from '@/lib/errorUtils';
 
 export const EmailSummary = ({ emailId }: EmailSummaryProps) => {
   const [summary, setSummary] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export const EmailSummary = ({ emailId }: EmailSummaryProps) => {
     generateSummary.mutate(
       { emailId, options },
       {
-        onSuccess: (data) => {
+        onSuccess: (data: import('@/types/email.types').EmailSummary) => {
           setSummary(data.summary);
         },
       }
@@ -52,8 +53,7 @@ export const EmailSummary = ({ emailId }: EmailSummaryProps) => {
           <span className="font-medium text-sm">Failed to generate summary</span>
         </div>
         <p className="text-sm text-muted-foreground">
-          {(generateSummary.error as any)?.response?.data?.message ||
-            'An error occurred while generating the summary.'}
+          {getErrorMessage(generateSummary.error, 'An error occurred while generating the summary.')}
         </p>
         <Button
           variant="outline"
