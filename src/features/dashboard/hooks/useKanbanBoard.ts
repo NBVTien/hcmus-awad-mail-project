@@ -10,13 +10,50 @@ interface MoveEmailParams {
   order: number;
 }
 
-export const useKanbanBoard = (mailboxId: string) => {
+type SortBy = 'date_newest' | 'date_oldest' | 'sender_name' | 'relevance';
+type FilterType = 'unread' | 'has_attachments' | 'starred';
+
+export const useKanbanBoard = (
+  mailboxId: string,
+  sortBy?: SortBy,
+  filters?: FilterType[]
+) => {
   const queryClient = useQueryClient();
 
-  // Fetch Kanban board data from backend
+  // Fetch Kanban board data from backend with filtering/sorting
   const boardQuery = useQuery({
-    queryKey: ['kanban-board', mailboxId],
-    queryFn: () => kanbanService.getKanbanBoard(),
+    queryKey: ['kanban-board', mailboxId, sortBy, filters],
+    queryFn: async () => {
+      // First get the board structure (columns)
+      const columns = await kanbanService.getKanbanBoard();
+
+      // If no filters or sorting, return as-is
+      if (!sortBy && (!filters || filters.length === 0)) {
+        return columns;
+      }
+
+      // Otherwise, fetch filtered/sorted cards for each column
+      const columnsWithFilteredCards = await Promise.all(
+        columns.map(async (column) => {
+          try {
+            const result = await kanbanService.getFilteredColumnCards(
+              column.id,
+              sortBy,
+              filters
+            );
+            return {
+              ...column,
+              cards: result.cards,
+            };
+          } catch (error) {
+            console.error(`Failed to fetch filtered cards for column ${column.id}:`, error);
+            return column; // Fallback to original column data
+          }
+        })
+      );
+
+      return columnsWithFilteredCards;
+    },
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every 60 seconds to catch resumed snoozes
   });

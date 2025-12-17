@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { KanbanBoard } from './KanbanBoard';
+import { KanbanFilterSortControls, type SortOrder, type KanbanFilters } from './KanbanFilterSortControls';
 import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
 import { useKanbanBoard } from '@/features/dashboard/hooks/useKanbanBoard';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
@@ -15,7 +16,43 @@ interface KanbanBoardViewProps {
 
 export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewProps) => {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
-  const kanbanBoard = useKanbanBoard(mailboxId);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [filters, setFilters] = useState<KanbanFilters>({
+    unreadOnly: false,
+    attachmentsOnly: false,
+    starredOnly: false,
+  });
+
+  // Convert frontend filter/sort format to backend format
+  const backendSortBy = useMemo(() => {
+    switch (sortOrder) {
+      case 'newest':
+        return 'date_newest';
+      case 'oldest':
+        return 'date_oldest';
+      case 'sender_name':
+        return 'sender_name';
+      case 'relevance':
+        return 'relevance';
+      default:
+        return 'date_newest';
+    }
+  }, [sortOrder]);
+
+  const backendFilters = useMemo(() => {
+    const activeFilters: Array<'unread' | 'has_attachments' | 'starred'> = [];
+    if (filters.unreadOnly) activeFilters.push('unread');
+    if (filters.attachmentsOnly) activeFilters.push('has_attachments');
+    if (filters.starredOnly) activeFilters.push('starred');
+    return activeFilters;
+  }, [filters]);
+
+  // Fetch board with backend filtering/sorting
+  const kanbanBoard = useKanbanBoard(
+    mailboxId,
+    backendSortBy as 'date_newest' | 'date_oldest' | 'sender_name' | 'relevance',
+    backendFilters
+  );
   const emailDetailQuery = useEmailDetail(selectedEmailId);
 
   const handleCloseDetail = () => {
@@ -40,6 +77,13 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
           >
             <RefreshCw className={`h-4 w-4 ${kanbanBoard.isLoading ? 'animate-spin' : ''}`} />
           </button>
+
+          <KanbanFilterSortControls
+            sortOrder={sortOrder}
+            onSortChange={setSortOrder}
+            filters={filters}
+            onFiltersChange={setFilters}
+          />
         </div>
 
         <Button onClick={onComposeClick} >

@@ -9,11 +9,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
-export type SortOrder = 'newest' | 'oldest';
+export type SortOrder = 'newest' | 'oldest' | 'sender_name' | 'relevance';
 
 export interface KanbanFilters {
   unreadOnly: boolean;
   attachmentsOnly: boolean;
+  starredOnly: boolean;
 }
 
 interface KanbanFilterSortControlsProps {
@@ -29,7 +30,22 @@ export const KanbanFilterSortControls = ({
   filters,
   onFiltersChange,
 }: KanbanFilterSortControlsProps) => {
-  const hasActiveFilters = filters.unreadOnly || filters.attachmentsOnly;
+  const hasActiveFilters = filters.unreadOnly || filters.attachmentsOnly || filters.starredOnly;
+
+  const getSortLabel = (order: SortOrder) => {
+    switch (order) {
+      case 'newest':
+        return 'Newest First';
+      case 'oldest':
+        return 'Oldest First';
+      case 'sender_name':
+        return 'Sender Name';
+      case 'relevance':
+        return 'Relevance';
+      default:
+        return 'Newest First';
+    }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -38,12 +54,12 @@ export const KanbanFilterSortControls = ({
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
             <ArrowUpDown className="h-4 w-4" />
-            Sort: {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+            Sort: {getSortLabel(sortOrder)}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-56" align="end">
           <div className="space-y-2">
-            <h4 className="font-medium text-sm">Sort by Date</h4>
+            <h4 className="font-medium text-sm">Sort By</h4>
             <Separator />
             <div className="space-y-2">
               <button
@@ -61,6 +77,22 @@ export const KanbanFilterSortControls = ({
                 }`}
               >
                 Oldest First
+              </button>
+              <button
+                onClick={() => onSortChange('sender_name')}
+                className={`w-full text-left px-2 py-1.5 rounded text-sm hover:bg-accent ${
+                  sortOrder === 'sender_name' ? 'bg-accent' : ''
+                }`}
+              >
+                Sender Name (A-Z)
+              </button>
+              <button
+                onClick={() => onSortChange('relevance')}
+                className={`w-full text-left px-2 py-1.5 rounded text-sm hover:bg-accent ${
+                  sortOrder === 'relevance' ? 'bg-accent' : ''
+                }`}
+              >
+                Relevance
               </button>
             </div>
           </div>
@@ -113,6 +145,21 @@ export const KanbanFilterSortControls = ({
                   Show only with attachments
                 </Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="starred-only"
+                  checked={filters.starredOnly}
+                  onCheckedChange={(checked) =>
+                    onFiltersChange({ ...filters, starredOnly: checked === true })
+                  }
+                />
+                <Label
+                  htmlFor="starred-only"
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  Show only starred
+                </Label>
+              </div>
             </div>
             {hasActiveFilters && (
               <>
@@ -122,7 +169,7 @@ export const KanbanFilterSortControls = ({
                   size="sm"
                   className="w-full"
                   onClick={() =>
-                    onFiltersChange({ unreadOnly: false, attachmentsOnly: false })
+                    onFiltersChange({ unreadOnly: false, attachmentsOnly: false, starredOnly: false })
                   }
                 >
                   Clear Filters
