@@ -7,11 +7,13 @@ import { EmailDetail } from '@/features/dashboard/slices/email-detail/components
 import { BulkActionToolbar } from '@/features/dashboard/slices/email-list/components';
 import { PaginationControls } from '@/features/dashboard/slices/email-list/components';
 import { KanbanBoardView } from '@/features/dashboard/slices/kanban/components';
+import { SearchBar, SearchResults } from '@/features/dashboard/slices/search/components';
 import { useMailboxes } from '@/features/dashboard/hooks/useMailboxes';
 import { useEmails } from '@/features/dashboard/hooks/useEmails';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
 import { useKeyboardNav } from '@/features/dashboard/hooks/useKeyboardNav';
 import { useBulkSelection } from '@/features/dashboard/hooks/useBulkSelection';
+import { useSearch } from '@/features/dashboard/slices/search/hooks/useSearch';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -45,6 +47,10 @@ export const DashboardLayout = () => {
   // Pagination state
   const [page, setPage] = useState(1);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchMode, setIsSearchMode] = useState(false);
+
   // Persist view mode to localStorage
   useEffect(() => {
     localStorage.setItem(`view-mode-${selectedMailboxId}`, viewMode);
@@ -54,6 +60,7 @@ export const DashboardLayout = () => {
   const mailboxesQuery = useMailboxes();
   const emailsQuery = useEmails(selectedMailboxId, page);
   const emailDetailQuery = useEmailDetail(selectedEmailId);
+  const searchResultsQuery = useSearch(searchQuery, isSearchMode);
 
   // Bulk operations
   const { bulkDelete, bulkMarkRead } = useBulkSelection();
@@ -151,6 +158,19 @@ export const DashboardLayout = () => {
     );
   };
 
+  // Search handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setIsSearchMode(true);
+    setSelectedEmailId(null);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setIsSearchMode(false);
+    setSelectedEmailId(null);
+  };
+
   // Handle errors
   if (mailboxesQuery.isError) {
     return (
@@ -193,67 +213,94 @@ export const DashboardLayout = () => {
           {/* Email List Column */}
           <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
             <div className="border-r h-full flex flex-col overflow-hidden">
-            {/* Toolbar */}
-            <div className="flex items-center justify-between px-4 py-2 border-b">
-              <div className="flex items-center gap-2">
-                <SidebarTrigger />
-                <button
-                  onClick={() => emailsQuery.refetch()}
-                  className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
-                  aria-label="Refresh email list"
-                  disabled={emailsQuery.isLoading}
+              {/* Toolbar */}
+              <div className="flex items-center gap-3 px-4 py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <SidebarTrigger />
+                  {!isSearchMode && (
+                    <button
+                      onClick={() => emailsQuery.refetch()}
+                      className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
+                      aria-label="Refresh email list"
+                      disabled={emailsQuery.isLoading}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${emailsQuery.isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                  )}
+                </div>
+
+                <SearchBar
+                  onSearch={handleSearch}
+                  onClear={handleClearSearch}
+                  isSearching={isSearchMode}
+                />
+
+                <Button
+                  onClick={() => {
+                    setComposeMode('compose');
+                    setComposeOpen(true);
+                  }}
                 >
-                  <RefreshCw className={`h-4 w-4 ${emailsQuery.isLoading ? 'animate-spin' : ''}`} />
-                </button>
+                  Compose
+                </Button>
               </div>
 
-              <Button
-                onClick={() => {
-                  setComposeMode('compose');
-                  setComposeOpen(true);
-                }}
-              >
-                Compose
-              </Button>
-            </div>
+              {isSearchMode ? (
+                /* Search Results View */
+                <div className="flex-1 overflow-hidden">
+                  <SearchResults
+                    query={searchQuery}
+                    results={searchResultsQuery.data}
+                    isLoading={searchResultsQuery.isLoading}
+                    isError={searchResultsQuery.isError}
+                    error={searchResultsQuery.error}
+                    onEmailSelect={setSelectedEmailId}
+                    selectedEmailId={selectedEmailId}
+                    onBack={handleClearSearch}
+                    onRetry={() => searchResultsQuery.refetch()}
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Bulk Action Toolbar */}
+                  <ErrorBoundary>
+                    <BulkActionToolbar
+                      selectedCount={emailSelection.count}
+                      totalCount={emailsQuery.data?.emails.length || 0}
+                      selectAll={emailSelection.selectAll}
+                      onToggleSelectAll={handleToggleSelectAll}
+                      onBulkDelete={handleBulkDelete}
+                      onBulkMarkRead={handleBulkMarkRead}
+                      onBulkMarkUnread={handleBulkMarkUnread}
+                      selectedEmails={(emailsQuery.data?.emails || []).filter((email) =>
+                        emailSelection.selectedIds.has(email.id)
+                      )}
+                    />
+                  </ErrorBoundary>
 
-            {/* Bulk Action Toolbar */}
-            <ErrorBoundary>
-              <BulkActionToolbar
-                selectedCount={emailSelection.count}
-                totalCount={emailsQuery.data?.emails.length || 0}
-                selectAll={emailSelection.selectAll}
-                onToggleSelectAll={handleToggleSelectAll}
-                onBulkDelete={handleBulkDelete}
-                onBulkMarkRead={handleBulkMarkRead}
-                onBulkMarkUnread={handleBulkMarkUnread}
-                selectedEmails={(emailsQuery.data?.emails || []).filter((email) =>
-                  emailSelection.selectedIds.has(email.id)
-                )}
-              />
-            </ErrorBoundary>
+                  {/* Email List */}
+                  <div className="flex-1 overflow-hidden w-full">
+                    <EmailList
+                      emails={emailsQuery.data?.emails || []}
+                      selectedEmailId={selectedEmailId}
+                      onSelectEmail={setSelectedEmailId}
+                      isLoading={emailsQuery.isLoading}
+                      selectedIds={emailSelection.selectedIds}
+                      onToggleSelect={handleToggleSelect}
+                      showCheckboxes={true}
+                    />
+                  </div>
 
-            {/* Email List */}
-            <div className="flex-1 overflow-hidden w-full">
-              <EmailList
-                emails={emailsQuery.data?.emails || []}
-                selectedEmailId={selectedEmailId}
-                onSelectEmail={setSelectedEmailId}
-                isLoading={emailsQuery.isLoading}
-                selectedIds={emailSelection.selectedIds}
-                onToggleSelect={handleToggleSelect}
-                showCheckboxes={true}
-              />
-            </div>
-
-            {/* Pagination */}
-            {emailsQuery.data?.pagination && totalPages > 1 && (
-              <PaginationControls
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
-            )}
+                  {/* Pagination */}
+                  {emailsQuery.data?.pagination && totalPages > 1 && (
+                    <PaginationControls
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                    />
+                  )}
+                </>
+              )}
             </div>
           </ResizablePanel>
 
@@ -262,27 +309,27 @@ export const DashboardLayout = () => {
           {/* Email Detail Column */}
           <ResizablePanel defaultSize={65} minSize={50}>
             <div className="h-full overflow-hidden">
-            <EmailDetail
-              email={emailDetailQuery.data || null}
-              isLoading={emailDetailQuery.isLoading}
-              onDeleteSuccess={() => {
-                // After delete, clear selection and go back to inbox
-                setSelectedEmailId(null);
-                setSelectedMailboxId('INBOX');
-              }}
-              onReply={() => {
-                setComposeMode('reply');
-                setComposeOpen(true);
-              }}
-              onReplyAll={() => {
-                setComposeMode('replyAll');
-                setComposeOpen(true);
-              }}
-              onForward={() => {
-                setComposeMode('forward');
-                setComposeOpen(true);
-              }}
-            />
+              <EmailDetail
+                email={emailDetailQuery.data || null}
+                isLoading={emailDetailQuery.isLoading}
+                onDeleteSuccess={() => {
+                  // After delete, clear selection and go back to inbox
+                  setSelectedEmailId(null);
+                  setSelectedMailboxId('INBOX');
+                }}
+                onReply={() => {
+                  setComposeMode('reply');
+                  setComposeOpen(true);
+                }}
+                onReplyAll={() => {
+                  setComposeMode('replyAll');
+                  setComposeOpen(true);
+                }}
+                onForward={() => {
+                  setComposeMode('forward');
+                  setComposeOpen(true);
+                }}
+              />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

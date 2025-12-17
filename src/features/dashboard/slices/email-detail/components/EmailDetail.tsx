@@ -66,7 +66,9 @@ export const EmailDetail = ({
         markAsReadTimerRef.current = null;
       }
     };
-  }, [email, toggleRead]);
+    // Only react to id and isRead changes, not other email properties
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email?.id, email?.isRead, toggleRead]);
 
   if (isLoading) {
     return (
