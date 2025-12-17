@@ -9,7 +9,6 @@ import type {
   EmailAddress,
   Attachment,
 } from '@/types/email.types';
-import type { Snooze, PaginatedResponse } from '@/types/snooze.types';
 
 /**
  * Backend email format from Gmail API
@@ -289,113 +288,176 @@ export const emailService = {
   },
 
   /**
-   * Snooze an email until a specific date/time
+   * Fuzzy search emails using backend PostgreSQL pg_trgm implementation
+   *
+   * Backend implementation provides:
+   * - Typo tolerance using trigram similarity
+   * - Multi-field search (subject, from_email, body)
+   * - Configurable threshold for match strictness
+   * - Results ranked by similarity score
+   *
+   * @param query - Search query string
+   * @param options - Search options
+   * @param options.limit - Maximum number of results (default: 20, max: 100)
+   * @param options.fields - Comma-separated fields to search (default: 'subject,from_email')
+   * @param options.threshold - Similarity threshold 0.0-1.0 (default: 0.3, lower = more loose)
    */
-  async snoozeEmail(
-    gmailMessageId: string,
-    snoozeUntil: Date,
-    isRecurring?: boolean,
-    recurrencePattern?: 'DAILY' | 'WEEKLY' | 'MONTHLY',
-    reason?: string
-  ): Promise<Snooze> {
-    const response = await apiClient.post(`/emails/${gmailMessageId}/snooze`, {
-      snoozeUntil: snoozeUntil.toISOString(),
-      isRecurring,
-      recurrencePattern,
-      reason,
-    });
+  async searchEmails(
+    query: string,
+    options?: {
+      limit?: number;
+      fields?: string;
+      threshold?: number;
+    }
+  ): Promise<Email[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    try {
+      const response = await apiClient.post('/emails/search/fuzzy', {
+        query: query.trim(),
+        limit: options?.limit || 20,
+        fields: options?.fields || 'subject,from_email',
+        threshold: options?.threshold || 0.3,
+      });
+
+      // Backend returns: { query, count, results: [...] }
+      const backendResults = response.data.results || [];
+
+      // Transform backend results to frontend Email format
+      return backendResults.map((result: BackendEmail) => transformEmail(result));
+    } catch (error) {
+      console.error('Error performing fuzzy search:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fuzzy search in a specific field only
+   *
+   * @param field - Field to search: 'subject', 'from_email', or 'body'
+   * @param query - Search query
+   * @param options - Search options
+   */
+  async searchEmailsByField(
+    field: 'subject' | 'from_email' | 'body',
+    query: string,
+    options?: {
+      limit?: number;
+      threshold?: number;
+    }
+  ): Promise<Email[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    try {
+      const response = await apiClient.post(`/emails/search/fuzzy/${field}`, null, {
+        params: {
+          q: query.trim(),
+          limit: options?.limit || 20,
+          threshold: options?.threshold || 0.3,
+        },
+      });
+
+      // Backend returns: { field, query, count, results: [...] }
+      const backendResults = response.data.results || [];
+
+      // Transform to frontend Email format
+      return backendResults.map((result: BackendEmail) => transformEmail(result));
+    } catch (error) {
+      console.error(`Error performing fuzzy search on field ${field}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * SMTP Configuration Management
+   *
+   * NOTE: These endpoints are available but no UI has been implemented yet.
+   * The backend supports full CRUD operations for SMTP/IMAP configurations.
+   *
+   * To implement SMTP config UI:
+   * 1. Create a settings page/modal for email accounts
+   * 2. Use these service methods to manage configs
+   * 3. Add form validation for SMTP/IMAP settings
+   * 4. Implement connection testing before saving
+   */
+
+  /**
+   * Create a new SMTP/IMAP configuration
+   */
+  async createSmtpConfig(config: {
+    emailAddress: string;
+    displayName?: string;
+    imapHost: string;
+    imapPort?: number;
+    imapSecure?: boolean;
+    imapUsername: string;
+    imapPassword: string;
+    smtpHost: string;
+    smtpPort?: number;
+    smtpSecure?: boolean;
+    smtpUsername: string;
+    smtpPassword: string;
+    isDefault?: boolean;
+  }) {
+    const response = await apiClient.post('/emails/smtp-config', config);
     return response.data;
   },
 
   /**
-   * Get all snoozed emails with pagination
+   * Get all SMTP configurations for the current user
    */
-  async getSnoozedEmails(
-    page: number = 1,
-    limit: number = 50
-  ): Promise<PaginatedResponse<Snooze>> {
-    const response = await apiClient.get('/emails/snoozed/list', {
-      params: { page, limit },
-    });
+  async getSmtpConfigs() {
+    const response = await apiClient.get('/emails/smtp-config');
     return response.data;
   },
 
   /**
-   * Get upcoming snoozed emails (within N days)
+   * Get a specific SMTP configuration
    */
-  async getUpcomingSnoozed(daysAhead: number = 7): Promise<Snooze[]> {
-    const response = await apiClient.get('/emails/snoozed/upcoming', {
-      params: { daysAhead },
-    });
+  async getSmtpConfig(configId: string) {
+    const response = await apiClient.get(`/emails/smtp-config/${configId}`);
     return response.data;
   },
 
   /**
-   * Get count of snoozed emails
+   * Update an SMTP configuration
    */
-  async getSnoozedCount(): Promise<number> {
-    const response = await apiClient.get('/emails/snoozed/count');
-    return response.data.count;
-  },
-
-  /**
-   * Get snooze history (all statuses)
-   */
-  async getSnoozeHistory(
-    page: number = 1,
-    limit: number = 50
-  ): Promise<PaginatedResponse<Snooze>> {
-    const response = await apiClient.get('/emails/snoozed/history', {
-      params: { page, limit },
-    });
+  async updateSmtpConfig(configId: string, updates: Partial<{
+    emailAddress: string;
+    displayName?: string;
+    imapHost: string;
+    imapPort?: number;
+    imapSecure?: boolean;
+    imapUsername: string;
+    imapPassword: string;
+    smtpHost: string;
+    smtpPort?: number;
+    smtpSecure?: boolean;
+    smtpUsername: string;
+    smtpPassword: string;
+    isDefault?: boolean;
+  }>) {
+    const response = await apiClient.put(`/emails/smtp-config/${configId}`, updates);
     return response.data;
   },
 
   /**
-   * Get specific snooze details
+   * Delete an SMTP configuration
    */
-  async getSnoozeById(snoozeId: string): Promise<Snooze> {
-    const response = await apiClient.get(`/emails/snoozed/${snoozeId}`);
+  async deleteSmtpConfig(configId: string) {
+    const response = await apiClient.delete(`/emails/smtp-config/${configId}`);
     return response.data;
   },
 
   /**
-   * Update snooze time
+   * Test SMTP configuration connection
    */
-  async updateSnoozeTime(snoozeId: string, newSnoozeUntil: Date): Promise<Snooze> {
-    const response = await apiClient.put(`/emails/snoozed/${snoozeId}/time`, {
-      newSnoozeUntil: newSnoozeUntil.toISOString(),
-    });
-    return response.data;
-  },
-
-  /**
-   * Manually resume a snoozed email
-   */
-  async resumeSnooze(snoozeId: string): Promise<void> {
-    await apiClient.post(`/emails/snoozed/${snoozeId}/resume`);
-  },
-
-  /**
-   * Cancel a snooze
-   */
-  async cancelSnooze(snoozeId: string): Promise<void> {
-    await apiClient.post(`/emails/snoozed/${snoozeId}/cancel`);
-  },
-
-  /**
-   * Generate AI summary for an email
-   */
-  async generateSummary(
-    emailId: string,
-    options?: import('@/types/email.types').SummaryOptions
-  ): Promise<import('@/types/email.types').EmailSummary> {
-    const response = await apiClient.post(`/emails/${emailId}/summary`, {
-      length: options?.length || 'medium',
-      tone: options?.tone || 'formal',
-      customInstructions: options?.customInstructions,
-      provider: options?.provider,
-    });
+  async testSmtpConfig(configId: string) {
+    const response = await apiClient.post(`/emails/smtp-config/${configId}/test`);
     return response.data;
   },
 };
