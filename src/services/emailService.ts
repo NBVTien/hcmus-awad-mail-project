@@ -33,6 +33,25 @@ interface BackendEmail {
   attachments?: Attachment[];
 }
 
+/**
+ * Backend search result format (raw database format)
+ */
+interface BackendSearchResult {
+  id: string;
+  subject?: string;
+  body?: string;
+  preview?: string;
+  from_name?: string;
+  from_email: string;
+  to_email?: string;
+  read?: boolean;
+  starred?: boolean;
+  folder?: string;
+  attachments?: Attachment[];
+  created_at?: string;
+  similarity?: number;
+}
+
 interface BackendMailbox {
   id: string;
   name: string;
@@ -40,6 +59,31 @@ interface BackendMailbox {
   messagesUnread?: number;
   type?: string;
 }
+
+/**
+ * Transform backend search result to frontend Email format
+ */
+const transformSearchResult = (result: BackendSearchResult): Email => {
+  return {
+    id: result.id,
+    mailboxId: result.folder || 'INBOX',
+    from: {
+      email: result.from_email,
+      name: result.from_name || result.from_email.split('@')[0],
+    },
+    to: result.to_email
+      ? [{ email: result.to_email, name: result.to_email.split('@')[0] }]
+      : [],
+    subject: result.subject || '(No Subject)',
+    body: result.body || '',
+    snippet: result.preview || '',
+    timestamp: result.created_at ? new Date(result.created_at).toISOString() : new Date().toISOString(),
+    isRead: result.read ?? true,
+    isStarred: result.starred ?? false,
+    hasAttachments: (result.attachments && result.attachments.length > 0) || false,
+    attachments: result.attachments,
+  };
+};
 
 /**
  * Transform backend Gmail email format to frontend format
@@ -326,8 +370,8 @@ export const emailService = {
       // Backend returns: { query, count, results: [...] }
       const backendResults = response.data.results || [];
 
-      // Transform backend results to frontend Email format
-      return backendResults.map((result: BackendEmail) => transformEmail(result));
+      // Transform backend search results to frontend Email format
+      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
     } catch (error) {
       console.error('Error performing fuzzy search:', error);
       throw error;
@@ -365,8 +409,8 @@ export const emailService = {
       // Backend returns: { field, query, count, results: [...] }
       const backendResults = response.data.results || [];
 
-      // Transform to frontend Email format
-      return backendResults.map((result: BackendEmail) => transformEmail(result));
+      // Transform search results to frontend Email format
+      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
     } catch (error) {
       console.error(`Error performing fuzzy search on field ${field}:`, error);
       throw error;
