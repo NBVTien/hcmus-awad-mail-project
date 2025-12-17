@@ -87,7 +87,7 @@ export function useEmailActions() {
 
             // Update email detail cache
             const previousDetail = queryClient.getQueryData<Email>(['email', emailId]);
-            queryClient.setQueryData(['email', emailId], (old: Email | undefined) => {
+            queryClient.setQueryData<Email>(['email', emailId], (old) => {
                 if (!old) return old;
                 return { ...old, isRead };
             });
