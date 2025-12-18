@@ -189,7 +189,16 @@ export const emailService = {
    */
   async getEmailById(emailId: string): Promise<Email> {
     const response = await apiClient.get(`/emails/${emailId}`);
-    return transformEmail(response.data);
+    const data = response.data;
+
+    // Check if it's database format (has from_email) or Gmail API format (has from object/string)
+    if ('from_email' in data) {
+      // Database format from search/direct query
+      return transformSearchResult(data);
+    } else {
+      // Gmail API format
+      return transformEmail(data);
+    }
   },
 
   /**
