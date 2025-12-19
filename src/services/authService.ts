@@ -2,6 +2,8 @@ import apiClient from '@/lib/apiClient';
 import type {
   LoginRequest,
   LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
   GoogleAuthRequest,
   GoogleAuthResponse,
   RefreshTokenRequest,
@@ -13,6 +15,33 @@ import type {
  * Real authentication service that communicates with the backend API
  */
 export const authService = {
+  /**
+   * Register a new user with email and password
+   */
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    const response = await apiClient.post('/auth/register', data);
+
+    // Transform backend response to frontend format
+    const backendData = response.data;
+    return {
+      user: {
+        id: backendData.user.id,
+        email: backendData.user.email,
+        displayName: backendData.user.name,
+        profilePicture: null,
+        authMethod: 'email' as const,
+        createdAt: new Date().toISOString(),
+      },
+      token: {
+        accessToken: backendData.accessToken,
+        refreshToken: backendData.refreshToken,
+        expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
+        tokenType: 'Bearer' as const,
+        scope: 'email',
+      },
+    };
+  },
+
   /**
    * Login with email and password
    */

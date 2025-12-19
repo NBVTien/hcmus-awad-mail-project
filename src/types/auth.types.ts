@@ -22,7 +22,18 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  name: string;
+  password: string;
+}
+
 export interface LoginResponse {
+  user: User;
+  token: AuthToken;
+}
+
+export interface RegisterResponse {
   user: User;
   token: AuthToken;
 }
