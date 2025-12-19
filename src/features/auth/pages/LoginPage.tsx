@@ -1,6 +1,8 @@
-// import { LoginForm } from './LoginForm';
-import { OAuthButton } from './OAuthButton';
-// import { Separator } from '@/components/ui/separator';
+import { Link } from 'react-router-dom';
+import { LoginForm } from '../components/LoginForm';
+import { OAuthButton } from '../components/OAuthButton';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 export const LoginPage = () => {
   return (
@@ -14,7 +16,20 @@ export const LoginPage = () => {
         </div>
 
         <div className="space-y-4">
-          {/* <LoginForm />
+          <LoginForm />
+
+          <div className="text-center text-sm">
+            <p>
+              Don't have an account?{' '}
+              <Button
+                variant="link"
+                className="p-0 h-auto font-normal"
+                asChild
+              >
+                <Link to="/register">Sign up</Link>
+              </Button>
+            </p>
+          </div>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -23,7 +38,7 @@ export const LoginPage = () => {
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
-          </div> */}
+          </div>
 
           <OAuthButton provider="google" />
         </div>
