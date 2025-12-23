@@ -1,0 +1,73 @@
+import { useNavigate } from 'react-router-dom';
+import { Mail, Chrome, Settings, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+export const NoEmailConfigured = () => {
+  const navigate = useNavigate();
+
+  const handleConnectGmail = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+  };
+
+  const handleConfigureSmtp = () => {
+    navigate('/settings/smtp');
+  };
+
+  return (
+    <div className="h-full flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full space-y-6">
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Mail className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold">No Email Account Connected</h2>
+          <p className="text-muted-foreground">
+            Connect your email account to start managing your inbox
+          </p>
+        </div>
+
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You need to connect an email account (Gmail OAuth or SMTP) before you can view and
+            manage emails.
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Chrome className="h-5 w-5" />
+                Connect Gmail
+              </CardTitle>
+              <CardDescription>Quick setup with Google OAuth</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={handleConnectGmail} className="w-full">
+                Connect Gmail Account
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configure SMTP
+              </CardTitle>
+              <CardDescription>Use any email provider</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={handleConfigureSmtp} variant="secondary" className="w-full">
+                Configure SMTP Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};

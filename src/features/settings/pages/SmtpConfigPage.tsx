@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Check, Mail } from 'lucide-react';
 import { SmtpConfigForm, type SmtpConfigFormData } from '../components/SmtpConfigForm';
@@ -35,11 +36,13 @@ interface SmtpConfig {
 }
 
 export const SmtpConfigPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingConfig, setEditingConfig] = useState<SmtpConfig | null>(null);
   const [deleteConfigId, setDeleteConfigId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isFirstConfig, setIsFirstConfig] = useState(false);
 
   // Fetch all SMTP configurations
   const { data: configs, isLoading, isError, error, refetch } = useQuery<SmtpConfig[]>({
@@ -47,14 +50,30 @@ export const SmtpConfigPage = () => {
     queryFn: () => emailService.getSmtpConfigs(),
   });
 
+  // Track if this is the first config being created
+  useEffect(() => {
+    if (configs && configs.length === 0) {
+      setIsFirstConfig(true);
+    }
+  }, [configs]);
+
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: SmtpConfigFormData) => emailService.createSmtpConfig(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smtp-configs'] });
       setIsCreateDialogOpen(false);
-      setSuccessMessage('SMTP configuration created successfully');
-      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // If this was the first config, redirect to dashboard
+      if (isFirstConfig) {
+        setSuccessMessage('SMTP configuration created! Redirecting to dashboard...');
+        setTimeout(() => {
+          navigate('/inbox');
+        }, 1500);
+      } else {
+        setSuccessMessage('SMTP configuration created successfully');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
     },
   });
 
