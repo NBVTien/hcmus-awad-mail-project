@@ -12,7 +12,8 @@ export const useRegister = () => {
     mutationFn: (data: RegisterRequest) => authService.register(data),
     onSuccess: (response) => {
       login(response.user, response.token);
-      navigate('/inbox');
+      // Redirect to welcome page for email setup
+      navigate('/welcome');
     },
   });
 };
