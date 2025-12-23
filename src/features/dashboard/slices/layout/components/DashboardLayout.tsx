@@ -8,6 +8,7 @@ import { BulkActionToolbar } from '@/features/dashboard/slices/email-list/compon
 import { PaginationControls } from '@/features/dashboard/slices/email-list/components';
 import { KanbanBoardView } from '@/features/dashboard/slices/kanban/components';
 import { SearchBar, SearchResults } from '@/features/dashboard/slices/search/components';
+import { SmtpSetupPrompt } from '@/features/settings/components';
 import { useMailboxes } from '@/features/dashboard/hooks/useMailboxes';
 import { useEmails } from '@/features/dashboard/hooks/useEmails';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
@@ -196,6 +197,9 @@ export const DashboardLayout = () => {
 
   return (
     <>
+      {/* SMTP Setup Prompt */}
+      <SmtpSetupPrompt />
+
       {/* Sidebar with mailboxes and user info */}
       <AppSidebar
         mailboxes={mailboxesQuery.data?.mailboxes || []}

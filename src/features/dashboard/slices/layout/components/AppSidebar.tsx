@@ -1,4 +1,5 @@
-import { LogOut, Mail, List, LayoutGrid } from 'lucide-react';
+import { LogOut, Mail, List, LayoutGrid, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -121,6 +122,26 @@ export const AppSidebar = ({
             {user?.email}
           </div>
           <Separator />
+          <Link to="/settings/smtp">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Email Settings
+            </Button>
+          </Link>
+          <Link to="/settings/kanban">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Kanban Settings
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"

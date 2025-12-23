@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/features/auth/components/LoginPage';
 import { OAuthCallbackPage } from '@/features/auth/pages/OAuthCallbackPage';
 import { DashboardPage } from '@/features/dashboard/pages';
+import { SmtpConfigPage, KanbanSettingsPage } from '@/features/settings/pages';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -22,6 +23,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <DashboardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings/smtp',
+    element: (
+      <ProtectedRoute>
+        <SmtpConfigPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings/kanban',
+    element: (
+      <ProtectedRoute>
+        <KanbanSettingsPage />
       </ProtectedRoute>
     ),
   },
