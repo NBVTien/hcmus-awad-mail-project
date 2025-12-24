@@ -8,6 +8,8 @@ import { BulkActionToolbar } from '@/features/dashboard/slices/email-list/compon
 import { PaginationControls } from '@/features/dashboard/slices/email-list/components';
 import { KanbanBoardView } from '@/features/dashboard/slices/kanban/components';
 import { SearchBar, SearchResults } from '@/features/dashboard/slices/search/components';
+import { SmtpSetupPrompt } from '@/features/settings/components';
+import { NoEmailConfigured } from '@/features/dashboard/components/NoEmailConfigured';
 import { useMailboxes } from '@/features/dashboard/hooks/useMailboxes';
 import { useEmails } from '@/features/dashboard/hooks/useEmails';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
@@ -172,6 +174,29 @@ export const DashboardLayout = () => {
   };
 
   // Handle errors
+  // Check if error is due to missing Gmail tokens
+  const isGmailTokensError = (error: unknown) => {
+    return error instanceof Error && error.message.includes('Gmail tokens not found');
+  };
+
+  if (mailboxesQuery.isError && isGmailTokensError(mailboxesQuery.error)) {
+    return (
+      <>
+        <AppSidebar
+          mailboxes={[]}
+          selectedMailboxId=""
+          onSelectMailbox={() => {}}
+          isLoading={false}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
+        <SidebarInset>
+          <NoEmailConfigured />
+        </SidebarInset>
+      </>
+    );
+  }
+
   if (mailboxesQuery.isError) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -183,7 +208,7 @@ export const DashboardLayout = () => {
     );
   }
 
-  if (emailsQuery.isError) {
+  if (emailsQuery.isError && !isGmailTokensError(emailsQuery.error)) {
     return (
       <div className="h-full flex items-center justify-center">
         <ErrorMessage
@@ -196,6 +221,9 @@ export const DashboardLayout = () => {
 
   return (
     <>
+      {/* SMTP Setup Prompt */}
+      <SmtpSetupPrompt />
+
       {/* Sidebar with mailboxes and user info */}
       <AppSidebar
         mailboxes={mailboxesQuery.data?.mailboxes || []}
@@ -232,7 +260,6 @@ export const DashboardLayout = () => {
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
-                  isSearching={isSearchMode}
                 />
 
                 <Button

@@ -342,47 +342,43 @@ export const emailService = {
   },
 
   /**
-   * Fuzzy search emails using backend PostgreSQL pg_trgm implementation
+   * Unified search using backend combined fuzzy + semantic search
    *
    * Backend implementation provides:
-   * - Typo tolerance using trigram similarity
+   * - Fuzzy search with typo tolerance (PostgreSQL pg_trgm)
+   * - Semantic search using embeddings (configurable)
    * - Multi-field search (subject, from_email, body)
-   * - Configurable threshold for match strictness
-   * - Results ranked by similarity score
+   * - Intelligent result combination and ranking
    *
    * @param query - Search query string
-   * @param options - Search options
-   * @param options.limit - Maximum number of results (default: 20, max: 100)
-   * @param options.fields - Comma-separated fields to search (default: 'subject,from_email')
-   * @param options.threshold - Similarity threshold 0.0-1.0 (default: 0.3, lower = more loose)
    */
-  async searchEmails(
-    query: string,
-    options?: {
-      limit?: number;
-      fields?: string;
-      threshold?: number;
-    }
-  ): Promise<Email[]> {
+  async searchEmails(query: string): Promise<Email[]> {
     if (!query.trim()) {
       return [];
     }
 
     try {
-      const response = await apiClient.post('/emails/search/fuzzy', {
-        query: query.trim(),
-        limit: options?.limit || 20,
-        fields: options?.fields || 'subject,from_email',
-        threshold: options?.threshold || 0.3,
+      // Use unified search endpoint (GET /emails/search)
+      const response = await apiClient.get('/emails/search', {
+        params: {
+          query: query.trim(),
+        },
       });
 
-      // Backend returns: { query, count, results: [...] }
-      const backendResults = response.data.results || [];
+      // Backend returns array of normalized email objects directly
+      const emails = Array.isArray(response.data) ? response.data : [];
 
-      // Transform backend search results to frontend Email format
-      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
+      // Transform to frontend format if needed
+      return emails.map((email: BackendEmail | BackendSearchResult) => {
+        // Check if it's database format or Gmail API format
+        if ('from_email' in email) {
+          return transformSearchResult(email as BackendSearchResult);
+        } else {
+          return transformEmail(email as BackendEmail);
+        }
+      });
     } catch (error) {
-      console.error('Error performing fuzzy search:', error);
+      console.error('Error performing search:', error);
       throw error;
     }
   },
@@ -512,6 +508,14 @@ export const emailService = {
    */
   async testSmtpConfig(configId: string) {
     const response = await apiClient.post(`/emails/smtp-config/${configId}/test`);
+    return response.data;
+  },
+
+  /**
+   * Set SMTP configuration as default
+   */
+  async setDefaultSmtpConfig(configId: string) {
+    const response = await apiClient.post(`/emails/smtp-config/${configId}/set-default`);
     return response.data;
   },
 
