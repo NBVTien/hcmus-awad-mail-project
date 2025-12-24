@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Check, Mail, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Check, Mail, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { SmtpConfigForm, type SmtpConfigFormData } from '../components/SmtpConfigForm';
 import { emailService } from '@/services/emailService';
 import { Button } from '@/components/ui/button';
@@ -190,6 +190,22 @@ export const SmtpConfigPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* SMTP Availability Warning */}
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Important:</strong> SMTP may be unavailable.{' '}
+            <a
+              href="https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:no-underline"
+            >
+              Learn more
+            </a>
+          </AlertDescription>
+        </Alert>
 
         {/* Success Message */}
         {successMessage && (
