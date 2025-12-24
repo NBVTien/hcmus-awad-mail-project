@@ -1,10 +1,16 @@
-import { LogOut, Mail, List, LayoutGrid, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { LogOut, Mail, List, LayoutGrid, Settings, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -36,6 +42,7 @@ export const AppSidebar = ({
   viewMode,
   onViewModeChange,
 }: AppSidebarProps) => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -122,26 +129,31 @@ export const AppSidebar = ({
             {user?.email}
           </div>
           <Separator />
-          <Link to="/settings/smtp">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Email Settings
-            </Button>
-          </Link>
-          <Link to="/settings/kanban">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Kanban Settings
-            </Button>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/settings/smtp')}>
+                <Mail className="h-4 w-4 mr-2" />
+                Email Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings/kanban')}>
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Kanban Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="outline"
             size="sm"

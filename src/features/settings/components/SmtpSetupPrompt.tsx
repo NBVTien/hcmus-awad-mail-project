@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Mail, X } from 'lucide-react';
 import { emailService } from '@/services/emailService';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,15 +12,20 @@ const SMTP_PROMPT_DISMISSED_KEY = 'smtp-setup-prompt-dismissed';
 
 export const SmtpSetupPrompt = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem(SMTP_PROMPT_DISMISSED_KEY) === 'true';
   });
+
+  // Don't show prompt for Google OAuth users (they don't need SMTP config)
+  const isGoogleUser = user?.authMethod === 'google';
 
   // Check if user has any SMTP configurations
   const { data: configs } = useQuery({
     queryKey: ['smtp-configs'],
     queryFn: () => emailService.getSmtpConfigs(),
     retry: false,
+    enabled: !isGoogleUser, // Don't fetch if user is using Google OAuth
   });
 
   const hasConfigs = configs && configs.length > 0;
@@ -41,8 +47,11 @@ export const SmtpSetupPrompt = () => {
     setIsDismissed(true);
   };
 
-  // Don't show if dismissed or if user already has configs
-  if (isDismissed || hasConfigs) {
+  // Don't show if:
+  // - User is using Google OAuth (doesn't need SMTP config)
+  // - User has dismissed the prompt
+  // - User already has SMTP configs
+  if (isGoogleUser || isDismissed || hasConfigs) {
     return null;
   }
 
