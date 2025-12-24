@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Check, Mail } from 'lucide-react';
+import { Plus, Trash2, Check, Mail, ArrowLeft } from 'lucide-react';
 import { SmtpConfigForm, type SmtpConfigFormData } from '../components/SmtpConfigForm';
 import { emailService } from '@/services/emailService';
 import { Button } from '@/components/ui/button';
@@ -168,17 +168,27 @@ export const SmtpConfigPage = () => {
     <div className="h-full overflow-auto">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Email Account Settings</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your SMTP and IMAP configurations for sending and receiving emails
-            </p>
-          </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Account
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/inbox')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Inbox
           </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Email Account Settings</h1>
+              <p className="text-muted-foreground mt-1">
+                Manage your SMTP and IMAP configurations for sending and receiving emails
+              </p>
+            </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Account
+            </Button>
+          </div>
         </div>
 
         {/* Success Message */}
