@@ -4,6 +4,7 @@ export interface KanbanColumn {
   order: number;
   color?: string;
   status?: string;
+  labelId?: string; // Gmail label ID mapping
   isActive?: boolean;
   cards?: KanbanCard[];
 }
@@ -39,5 +40,6 @@ export interface CreateColumnDto {
   order: number;
   color?: string;
   status?: string;
+  labelId?: string; // Gmail label ID mapping
   isActive?: boolean;
 }
