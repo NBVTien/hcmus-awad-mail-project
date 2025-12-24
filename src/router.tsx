@@ -1,8 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/features/auth/components/LoginPage';
-import { OAuthCallbackPage } from '@/features/auth/pages/OAuthCallbackPage';
+import { LoginPage, RegisterPage, OAuthCallbackPage, WelcomePage } from '@/features/auth/pages';
 import { DashboardPage } from '@/features/dashboard/pages';
+import { SmtpConfigPage, KanbanSettingsPage } from '@/features/settings/pages';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { RequireEmailConfig } from '@/components/RequireEmailConfig';
 
 export const router = createBrowserRouter([
   {
@@ -14,14 +15,44 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+  {
     path: '/auth/callback',
     element: <OAuthCallbackPage />,
+  },
+  {
+    path: '/welcome',
+    element: (
+      <ProtectedRoute>
+        <WelcomePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/inbox',
     element: (
       <ProtectedRoute>
-        <DashboardPage />
+        <RequireEmailConfig>
+          <DashboardPage />
+        </RequireEmailConfig>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings/smtp',
+    element: (
+      <ProtectedRoute>
+        <SmtpConfigPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings/kanban',
+    element: (
+      <ProtectedRoute>
+        <KanbanSettingsPage />
       </ProtectedRoute>
     ),
   },
