@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Edit2, Save, Tag } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, Tag, ArrowLeft } from 'lucide-react';
 import { kanbanService } from '@/services/kanbanService';
 import { emailService } from '@/services/emailService';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,7 @@ const PRESET_COLORS = [
 ];
 
 export const KanbanSettingsPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingColumn, setEditingColumn] = useState<KanbanColumn | null>(null);
@@ -197,17 +199,27 @@ export const KanbanSettingsPage = () => {
     <div className="h-full overflow-auto">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Kanban Board Settings</h1>
-            <p className="text-muted-foreground mt-1">
-              Customize your Kanban columns and Gmail label mappings
-            </p>
-          </div>
-          <Button onClick={handleCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Column
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/inbox')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Inbox
           </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Kanban Board Settings</h1>
+              <p className="text-muted-foreground mt-1">
+                Customize your Kanban columns and Gmail label mappings
+              </p>
+            </div>
+            <Button onClick={handleCreate} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Column
+            </Button>
+          </div>
         </div>
 
         {/* Success Message */}
