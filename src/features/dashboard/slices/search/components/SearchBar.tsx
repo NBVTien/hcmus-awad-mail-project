@@ -8,10 +8,9 @@ import { cn } from '@/lib/utils';
 interface SearchBarProps {
   onSearch: (query: string) => void;
   onClear: () => void;
-  isSearching: boolean;
 }
 
-export const SearchBar = ({ onSearch, onClear, isSearching }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -128,7 +127,7 @@ export const SearchBar = ({ onSearch, onClear, isSearching }: SearchBarProps) =>
           autoComplete="off"
         />
         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
-          {(query || isSearching) && (
+          {query && (
             <Button
               type="button"
               variant="ghost"
@@ -143,11 +142,11 @@ export const SearchBar = ({ onSearch, onClear, isSearching }: SearchBarProps) =>
           <Button
             type="submit"
             size="sm"
-            disabled={!query.trim() || isSearching}
+            disabled={!query.trim()}
             className="h-7 px-3"
             title="Search (Enter)"
           >
-            {isSearching ? 'Searching...' : 'Search'}
+            Search
           </Button>
         </div>
 
