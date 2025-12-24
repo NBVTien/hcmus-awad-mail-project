@@ -260,7 +260,6 @@ export const DashboardLayout = () => {
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
-                  isSearching={isSearchMode}
                 />
 
                 <Button
