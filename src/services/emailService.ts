@@ -629,4 +629,88 @@ export const emailService = {
     });
     return response.data;
   },
+
+  /**
+   * Advanced search with criteria parsing
+   * Supports: from:, to:, subject:, contains:, has:attachment, is:read, is:unread, is:starred, folder:
+   */
+  async advancedSearch(params: {
+    query: string;
+    folder?: string;
+    page?: number;
+    limit?: number;
+    forceSync?: boolean;
+  }): Promise<{
+    emails: Email[];
+    criteria: Record<string, any>;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const response = await apiClient.post('/emails/search/advanced', {
+      query: params.query,
+      folder: params.folder,
+      page: params.page || 1,
+      limit: params.limit || 20,
+      forceSync: params.forceSync || false,
+    });
+
+    // Transform emails if needed
+    const emails = response.data.emails.map((email: any) => {
+      if ('from_email' in email) {
+        return transformSearchResult(email);
+      } else {
+        return transformEmail(email);
+      }
+    });
+
+    return {
+      emails,
+      criteria: response.data.criteria,
+      pagination: response.data.pagination,
+    };
+  },
+
+  /**
+   * Get sender email suggestions for autocomplete
+   */
+  async getSenderSuggestions(query: string, limit: number = 10): Promise<Array<{
+    email: string;
+    name?: string;
+    displayText: string;
+  }>> {
+    const response = await apiClient.get('/emails/suggestions/senders', {
+      params: { query, limit },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get recipient email suggestions for autocomplete
+   */
+  async getRecipientSuggestions(query: string, limit: number = 10): Promise<Array<{
+    email: string;
+    displayText: string;
+  }>> {
+    const response = await apiClient.get('/emails/suggestions/recipients', {
+      params: { query, limit },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get subject suggestions for autocomplete
+   */
+  async getSubjectSuggestions(query: string, limit: number = 10): Promise<Array<{
+    subject: string;
+    displayText: string;
+  }>> {
+    const response = await apiClient.get('/emails/suggestions/subjects', {
+      params: { query, limit },
+    });
+    return response.data;
+  },
 };
