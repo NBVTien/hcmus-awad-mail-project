@@ -80,8 +80,9 @@ export const SmtpSetupPrompt = () => {
         <CardContent>
           <Alert>
             <AlertDescription>
-              To send emails using custom SMTP servers, configure your email account settings.
-              You can add Gmail, Outlook, or any custom IMAP/SMTP provider.
+              Optional: Add additional email accounts using custom SMTP/IMAP servers.
+              You can configure Gmail, Outlook, Yahoo, or any custom provider to send and
+              receive emails alongside your primary Gmail authentication.
             </AlertDescription>
           </Alert>
         </CardContent>

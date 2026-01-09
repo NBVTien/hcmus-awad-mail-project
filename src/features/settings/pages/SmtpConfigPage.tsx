@@ -191,6 +191,16 @@ export const SmtpConfigPage = () => {
           </div>
         </div>
 
+        {/* Gmail Requirement Info */}
+        <Alert>
+          <Mail className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Note:</strong> Gmail authentication is required for your account. SMTP/IMAP
+            configurations are optional and allow you to send/receive emails from additional
+            email providers while using Gmail for authentication.
+          </AlertDescription>
+        </Alert>
+
         {/* SMTP Availability Warning */}
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />

@@ -59,20 +59,52 @@ apiClient.interceptors.request.use(
 // Response interceptor: Handle 401 and auto-refresh
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  async (error: AxiosError<{ requiresLogout?: boolean; error?: string; message?: string }>) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401) {
+      // Check if the backend explicitly requires logout (e.g., OAuth token expired)
+      const requiresLogout = error.response?.data?.requiresLogout;
 
-      try {
-        if (!refreshAccessToken) {
-          throw new Error('Refresh token callback not set');
-        }
+      if (requiresLogout) {
+        // Don't attempt to refresh, immediately logout
+        console.error('Authentication expired, logging out:', error.response?.data?.error);
+        logout?.().catch(console.error);
+        return Promise.reject(error);
+      }
 
-        // Concurrency guard: if a refresh is already in progress, await it
-        // instead of issuing another refresh request
-        if (refreshPromise) {
+      // Only attempt refresh if not already retried
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          if (!refreshAccessToken) {
+            throw new Error('Refresh token callback not set');
+          }
+
+          // Concurrency guard: if a refresh is already in progress, await it
+          // instead of issuing another refresh request
+          if (refreshPromise) {
+            const newAccessToken = await refreshPromise;
+
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            }
+
+            return apiClient(originalRequest);
+          }
+
+          // No refresh in progress, start a new one
+          refreshPromise = refreshAccessToken()
+            .then((token) => {
+              refreshPromise = null; // Clear the promise on success
+              return token;
+            })
+            .catch((error) => {
+              refreshPromise = null; // Clear the promise on error
+              throw error;
+            });
+
           const newAccessToken = await refreshPromise;
 
           if (originalRequest.headers) {
@@ -80,30 +112,11 @@ apiClient.interceptors.response.use(
           }
 
           return apiClient(originalRequest);
+        } catch (refreshError) {
+          // Redirect to login if refresh fails
+          logout?.().catch(console.error);
+          return Promise.reject(refreshError);
         }
-
-        // No refresh in progress, start a new one
-        refreshPromise = refreshAccessToken()
-          .then((token) => {
-            refreshPromise = null; // Clear the promise on success
-            return token;
-          })
-          .catch((error) => {
-            refreshPromise = null; // Clear the promise on error
-            throw error;
-          });
-
-        const newAccessToken = await refreshPromise;
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        }
-
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Redirect to login if refresh fails
-        logout?.().catch(console.error);
-        return Promise.reject(refreshError);
       }
     }
 

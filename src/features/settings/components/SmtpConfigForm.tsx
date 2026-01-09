@@ -125,7 +125,8 @@ export const SmtpConfigForm = ({
         <CardHeader>
           <CardTitle>Email Account Configuration</CardTitle>
           <CardDescription>
-            Configure your SMTP and IMAP settings to send and receive emails
+            Configure your SMTP and IMAP settings to send and receive emails from additional providers.
+            Gmail authentication is required and used as your primary authentication method.
           </CardDescription>
         </CardHeader>
 
