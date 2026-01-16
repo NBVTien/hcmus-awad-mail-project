@@ -249,7 +249,7 @@ export const DashboardLayout = () => {
           <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Email List Column */}
           <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
-            <div className="border-r h-full flex flex-col overflow-hidden">
+            <div className="border-r h-full flex flex-col overflow-hidden min-w-0 w-full">
               {/* Toolbar */}
               <div className="flex items-center gap-3 px-4 py-2 border-b">
                 <div className="flex items-center gap-2">
@@ -296,7 +296,7 @@ export const DashboardLayout = () => {
                   </ErrorBoundary>
 
                   {/* Email List */}
-                  <div className="flex-1 overflow-hidden w-full">
+                  <div className="flex-1 overflow-hidden w-full min-w-0">
                     <EmailList
                       emails={emailsQuery.data?.emails || []}
                       selectedEmailId={selectedEmailId}
