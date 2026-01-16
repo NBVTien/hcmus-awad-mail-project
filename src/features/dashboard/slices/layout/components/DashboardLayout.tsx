@@ -240,7 +240,7 @@ export const DashboardLayout = () => {
           setComposeOpen(true);
         }}
         onSync={() => emailsQuery.refetch()}
-        isSyncing={emailsQuery.isLoading}
+        isSyncing={emailsQuery.isFetching}
       />
 
       {/* Main content area */}
