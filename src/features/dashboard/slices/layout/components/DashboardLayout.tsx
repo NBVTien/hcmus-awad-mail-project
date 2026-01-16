@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
 import { ComposeModal } from '@/features/dashboard/slices/compose/components';
+
 import { AppSidebar } from './AppSidebar';
 import { EmailList } from '@/features/dashboard/slices/email-list/components';
 import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
@@ -25,7 +25,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import type { EmailSelection } from '@/types/email.types';
-import { Button } from '@/components/ui/button';
+
 
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
@@ -189,6 +189,8 @@ export const DashboardLayout = () => {
           isLoading={false}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          onCompose={() => {}}
+          onSync={() => {}}
         />
         <SidebarInset>
           <NoEmailConfigured />
@@ -225,6 +227,7 @@ export const DashboardLayout = () => {
       <SmtpSetupPrompt />
 
       {/* Sidebar with mailboxes and user info */}
+      {/* Sidebar with mailboxes and user info */}
       <AppSidebar
         mailboxes={mailboxesQuery.data?.mailboxes || []}
         selectedMailboxId={selectedMailboxId}
@@ -232,6 +235,12 @@ export const DashboardLayout = () => {
         isLoading={mailboxesQuery.isLoading}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        onCompose={() => {
+          setComposeMode('compose');
+          setComposeOpen(true);
+        }}
+        onSync={() => emailsQuery.refetch()}
+        isSyncing={emailsQuery.isLoading}
       />
 
       {/* Main content area */}
@@ -245,31 +254,12 @@ export const DashboardLayout = () => {
               <div className="flex items-center gap-3 px-4 py-2 border-b">
                 <div className="flex items-center gap-2">
                   <SidebarTrigger />
-                  {!isSearchMode && (
-                    <button
-                      onClick={() => emailsQuery.refetch()}
-                      className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
-                      aria-label="Refresh email list"
-                      disabled={emailsQuery.isLoading}
-                    >
-                      <RefreshCw className={`h-4 w-4 ${emailsQuery.isLoading ? 'animate-spin' : ''}`} />
-                    </button>
-                  )}
                 </div>
 
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
                 />
-
-                <Button
-                  onClick={() => {
-                    setComposeMode('compose');
-                    setComposeOpen(true);
-                  }}
-                >
-                  Compose
-                </Button>
               </div>
 
               {isSearchMode ? (
@@ -363,10 +353,6 @@ export const DashboardLayout = () => {
         ) : (
           <KanbanBoardView
             mailboxId={selectedMailboxId}
-            onComposeClick={() => {
-              setComposeMode('compose');
-              setComposeOpen(true);
-            }}
           />
         )}
       </SidebarInset>

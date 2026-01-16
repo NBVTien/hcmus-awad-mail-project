@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { RefreshCw } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { KanbanBoard } from './KanbanBoard';
@@ -7,14 +6,12 @@ import { KanbanFilterSortControls, type SortOrder, type KanbanFilters } from './
 import { EmailDetail } from '@/features/dashboard/slices/email-detail/components';
 import { useKanbanBoard } from '@/features/dashboard/hooks/useKanbanBoard';
 import { useEmailDetail } from '@/features/dashboard/hooks/useEmailDetail';
-import { Button } from '@/components/ui/button';
 
 interface KanbanBoardViewProps {
   mailboxId: string;
-  onComposeClick: () => void;
 }
 
-export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewProps) => {
+export const KanbanBoardView = ({ mailboxId }: KanbanBoardViewProps) => {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [filters, setFilters] = useState<KanbanFilters>({
@@ -69,15 +66,6 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
       <div className="flex items-center justify-between px-4 py-2 border-b">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
-          <button
-            onClick={() => kanbanBoard.refetch()}
-            className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1"
-            aria-label="Refresh Kanban board"
-            disabled={kanbanBoard.isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${kanbanBoard.isLoading ? 'animate-spin' : ''}`} />
-          </button>
-
           <KanbanFilterSortControls
             sortOrder={sortOrder}
             onSortChange={setSortOrder}
@@ -85,10 +73,6 @@ export const KanbanBoardView = ({ mailboxId, onComposeClick }: KanbanBoardViewPr
             onFiltersChange={setFilters}
           />
         </div>
-
-        <Button onClick={onComposeClick} >
-          Compose
-        </Button>
       </div>
 
       <div className="flex-1 overflow-hidden">
