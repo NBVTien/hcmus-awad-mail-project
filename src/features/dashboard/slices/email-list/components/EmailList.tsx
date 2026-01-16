@@ -3,7 +3,7 @@
  * Recommended: react-window or @tanstack/react-virtual
  * See: IMPLEMENTATION_TIPS.md Section 3
  */
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
@@ -36,7 +36,7 @@ const EmailListItem = ({
   return (
     <div
       className={cn(
-        'w-full max-w-full min-w-0 text-left px-4 py-3 transition-colors border-l-2 cursor-pointer',
+        'w-full max-w-full min-w-0 text-left pl-3.5 pr-4 py-3 transition-colors border-l-2 cursor-pointer',
         'hover:bg-accent',
         isSelected ? 'bg-accent border-primary' : 'border-transparent',
         !email.isRead && 'font-semibold'
@@ -113,7 +113,7 @@ export const EmailList = ({
   }
 
   return (
-    <ScrollArea className="h-full w-full overflow-hidden">
+    <div className="h-full w-full overflow-y-auto overflow-x-hidden">
       <div className="flex flex-col w-full min-w-0 divide-y">
         {emails.map((email) => (
           <EmailListItem
@@ -127,6 +127,6 @@ export const EmailList = ({
           />
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
