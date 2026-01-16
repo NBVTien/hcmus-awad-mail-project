@@ -1,4 +1,4 @@
-import { LogOut, Mail, List, LayoutGrid, Settings, ChevronDown } from 'lucide-react';
+import { LogOut, Mail, List, LayoutGrid, Settings, ChevronDown, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,9 @@ interface AppSidebarProps {
   isLoading?: boolean;
   viewMode: 'list' | 'kanban';
   onViewModeChange: (mode: 'list' | 'kanban') => void;
+  onCompose: () => void;
+  onSync: () => void;
+  isSyncing?: boolean;
 }
 
 export const AppSidebar = ({
@@ -41,6 +44,9 @@ export const AppSidebar = ({
   isLoading,
   viewMode,
   onViewModeChange,
+  onCompose,
+  onSync,
+  isSyncing,
 }: AppSidebarProps) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -59,6 +65,35 @@ export const AppSidebar = ({
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={onCompose} 
+                className="w-full justify-start font-medium" 
+                size="lg"
+              >
+                <div className="flex items-center justify-center bg-primary-foreground/20 rounded-full w-6 h-6 mr-2">
+                  <span className="text-lg leading-none mb-0.5">+</span>
+                </div>
+                Compose
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={onSync} 
+                className="w-full justify-start font-medium"
+                size="lg"
+                disabled={isSyncing}
+              >
+                <div className={`flex items-center justify-center rounded-full w-6 h-6 mr-2 ${isSyncing ? 'animate-spin' : ''}`}>
+                   <RefreshCw className="h-4 w-4" />
+                </div>
+                Sync Emails
+              </Button>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>View Mode</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -108,7 +143,7 @@ export const AppSidebar = ({
                         <span className="flex items-center justify-between w-full gap-2 min-w-0">
                           <span className="truncate">{mailbox.name}</span>
                           {mailbox.unreadCount > 0 && (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground flex-shrink-0">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground shrink-0">
                               {mailbox.unreadCount}
                             </span>
                           )}
