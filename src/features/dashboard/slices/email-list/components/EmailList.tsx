@@ -36,7 +36,7 @@ const EmailListItem = ({
   return (
     <div
       className={cn(
-        'w-full max-w-full text-left px-4 py-3 transition-colors border-l-2 cursor-pointer',
+        'w-full max-w-full min-w-0 text-left px-4 py-3 transition-colors border-l-2 cursor-pointer',
         'hover:bg-accent',
         isSelected ? 'bg-accent border-primary' : 'border-transparent',
         !email.isRead && 'font-semibold'
@@ -114,7 +114,7 @@ export const EmailList = ({
 
   return (
     <ScrollArea className="h-full w-full overflow-hidden">
-      <div className="divide-y w-full">
+      <div className="flex flex-col w-full min-w-0 divide-y">
         {emails.map((email) => (
           <EmailListItem
             key={email.id}
