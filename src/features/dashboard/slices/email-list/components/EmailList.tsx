@@ -54,7 +54,7 @@ const EmailListItem = ({
     >
       <div className="flex items-start gap-3 min-w-0 max-w-full">
         {showCheckbox && onToggleCheck && (
-          <div className="flex flex-col items-center gap-1 pt-0.5 flex-shrink-0">
+          <div className="flex flex-col items-center gap-1 pt-0.5 shrink-0">
             <div
               onClick={(e) => {
                 e.stopPropagation();
@@ -72,10 +72,10 @@ const EmailListItem = ({
         <div className="flex-1 min-w-0 space-y-1 overflow-hidden">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-              {email.isStarred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
+              {email.isStarred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 shrink-0" />}
               <span className="text-sm truncate block">{email.from.name || email.from.email}</span>
             </div>
-            <span className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+            <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
               {formatTimestamp(email.timestamp)}
             </span>
           </div>
