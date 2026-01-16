@@ -1,4 +1,5 @@
 import { useDraggable } from '@dnd-kit/core';
+import { Paperclip } from 'lucide-react';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import type { KanbanCard } from '@/types/kanban.types';
@@ -33,14 +34,19 @@ export const KanbanCardItem = ({ card, columnId, isSelected, onClick }: KanbanCa
       onClick={onClick}
       className={cn(
         'p-3 bg-card border rounded-lg shadow-sm transition-all cursor-pointer',
-        'hover:shadow-md w-[296px]',
+        'w-full',
         isSelected && 'ring-2 ring-primary bg-accent',
         isDragging && 'opacity-50'
       )}
     >
       <div className="space-y-1 w-full">
-        <div className="text-sm font-medium truncate w-full">
-          {card.email.fromName || card.email.fromEmail}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm font-medium truncate flex-1">
+            {card.email.fromName || card.email.fromEmail}
+          </div>
+          {card.email.hasAttachments && (
+            <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
+          )}
         </div>
         <div className="text-sm truncate font-semibold w-full">
           {card.email.subject || '(No subject)'}
