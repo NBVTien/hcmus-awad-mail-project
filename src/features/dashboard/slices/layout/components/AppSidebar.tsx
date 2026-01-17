@@ -1,16 +1,10 @@
-import { LogOut, Mail, List, LayoutGrid, Settings, ChevronDown, RefreshCw } from 'lucide-react';
+import { LogOut, Mail, List, LayoutGrid, Settings, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -164,31 +158,15 @@ export const AppSidebar = ({
             {user?.email}
           </div>
           <Separator />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-between"
-              >
-                <span className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate('/settings/smtp')}>
-                <Mail className="h-4 w-4 mr-2" />
-                Email Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings/kanban')}>
-                <LayoutGrid className="h-4 w-4 mr-2" />
-                Kanban Settings
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/settings')}
+            className="w-full justify-start"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
           <Button
             variant="outline"
             size="sm"
