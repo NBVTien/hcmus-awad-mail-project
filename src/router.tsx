@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { LoginPage, RegisterPage, OAuthCallbackPage, WelcomePage } from '@/features/auth/pages';
 import { DashboardPage } from '@/features/dashboard/pages';
-import { SmtpConfigPage, KanbanSettingsPage } from '@/features/settings/pages';
+import { SettingsPage } from '@/features/settings/pages';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { RequireEmailConfig } from '@/components/RequireEmailConfig';
 
@@ -41,20 +41,24 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/settings/smtp',
+    path: '/settings',
     element: (
       <ProtectedRoute>
-        <SmtpConfigPage />
+        <SettingsPage />
       </ProtectedRoute>
     ),
   },
   {
+    path: '/settings/smtp',
+    element: <Navigate to="/settings" replace />,
+  },
+  {
     path: '/settings/kanban',
-    element: (
-      <ProtectedRoute>
-        <KanbanSettingsPage />
-      </ProtectedRoute>
-    ),
+    element: <Navigate to="/settings" replace />,
+  },
+  {
+    path: '/settings/search',
+    element: <Navigate to="/settings" replace />,
   },
   {
     path: '*',
