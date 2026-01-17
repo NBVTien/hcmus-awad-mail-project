@@ -351,14 +351,21 @@ export const emailService = {
    * - Intelligent result combination and ranking
    *
    * @param query - Search query string
+   * @param mode - Search mode: 'normal' (fuzzy only) or 'advanced' (fuzzy + semantic)
    */
-  async searchEmails(query: string): Promise<Email[]> {
+  async searchEmails(query: string, mode: 'normal' | 'advanced' = 'advanced'): Promise<Email[]> {
     if (!query.trim()) {
       return [];
     }
 
     try {
-      // Use unified search endpoint (GET /emails/search)
+      if (mode === 'normal') {
+        // Use fuzzy-only search for normal mode
+        return this.searchEmailsFuzzyOnly(query);
+      }
+
+      // Use unified search endpoint (GET /emails/search) for advanced mode
+      // This combines fuzzy + semantic search
       const response = await apiClient.get('/emails/search', {
         params: {
           query: query.trim(),
@@ -379,6 +386,38 @@ export const emailService = {
       });
     } catch (error) {
       console.error('Error performing search:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fuzzy-only search (Normal search mode)
+   * Uses PostgreSQL trigram similarity without semantic search
+   *
+   * @param query - Search query string
+   */
+  async searchEmailsFuzzyOnly(query: string): Promise<Email[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    try {
+      // Use the legacy fuzzy search endpoint
+      const response = await apiClient.post('/emails/search/fuzzy', null, {
+        params: {
+          q: query.trim(),
+          fields: 'subject,from_email',
+          limit: 20,
+        },
+      });
+
+      // Backend returns: { query, count, results: [...] }
+      const backendResults = response.data.results || [];
+
+      // Transform search results to frontend Email format
+      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
+    } catch (error) {
+      console.error('Error performing fuzzy search:', error);
       throw error;
     }
   },
