@@ -240,14 +240,42 @@ export const emailService = {
   /**
    * Send a new email
    */
-  async sendEmail(draft: EmailDraft): Promise<Email> {
-    const response = await apiClient.post('/emails/send', {
-      to: draft.to,
-      cc: draft.cc,
-      bcc: draft.bcc,
-      subject: draft.subject,
-      body: draft.body,
-    });
+  async sendEmail(draft: EmailDraft, files?: File[]): Promise<Email> {
+    let response;
+
+    // Check if we have files to upload
+    const attachments = files || (Array.isArray(draft.attachments) && draft.attachments.length > 0 && draft.attachments[0] instanceof File ? draft.attachments as File[] : []);
+
+    if (attachments && attachments.length > 0) {
+      const formData = new FormData();
+
+      // Append fields
+      draft.to.forEach(to => formData.append('to', to));
+      if (draft.cc) draft.cc.forEach(cc => formData.append('cc', cc));
+      if (draft.bcc) draft.bcc.forEach(bcc => formData.append('bcc', bcc));
+      formData.append('subject', draft.subject);
+      formData.append('body', draft.body);
+
+      // Append files
+      attachments.forEach((file: File) => {
+        formData.append('files', file);
+      });
+
+      response = await apiClient.post('/emails/send', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    } else {
+      // Normal JSON request
+      response = await apiClient.post('/emails/send', {
+        to: draft.to,
+        cc: draft.cc,
+        bcc: draft.bcc,
+        subject: draft.subject,
+        body: draft.body,
+      });
+    }
 
     // Backend returns { message: 'Email sent successfully', messageId, threadId }
     // Construct a minimal email object representing the sent email
@@ -263,7 +291,7 @@ export const emailService = {
       timestamp: new Date().toISOString(),
       isRead: true,
       isStarred: false,
-      hasAttachments: false,
+      hasAttachments: !!(attachments && attachments.length > 0),
     };
 
     return sentEmail;
