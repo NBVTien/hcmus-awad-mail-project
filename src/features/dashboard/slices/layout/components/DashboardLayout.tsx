@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ComposeModal } from '@/features/dashboard/slices/compose/components';
 
 import { AppSidebar } from './AppSidebar';
@@ -18,7 +20,7 @@ import { useBulkSelection } from '@/features/dashboard/hooks/useBulkSelection';
 import { useSearch } from '@/features/dashboard/slices/search/hooks/useSearch';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -30,6 +32,8 @@ import type { EmailSelection } from '@/types/email.types';
 type ComposeMode = 'compose' | 'reply' | 'replyAll' | 'forward';
 
 export const DashboardLayout = () => {
+  const { isMobile } = useSidebar();
+
   const [selectedMailboxId, setSelectedMailboxId] = useState<string>('INBOX');
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
@@ -245,11 +249,43 @@ export const DashboardLayout = () => {
 
       {/* Main content area */}
       <SidebarInset className="flex-1 overflow-hidden">
-        {viewMode === 'list' ? (
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Email List Column */}
-          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
-            <div className="border-r h-full flex flex-col overflow-hidden min-w-0 w-full">
+        {isMobile ? (
+          /* Mobile View */
+          selectedEmailId ? (
+            <div className="h-full flex flex-col">
+              <div className="flex items-center gap-2 px-4 py-2 border-b">
+                <Button variant="ghost" size="icon" onClick={() => setSelectedEmailId(null)}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="font-semibold truncate flex-1">
+                  {emailDetailQuery.data?.subject || 'Email'}
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <EmailDetail
+                  email={emailDetailQuery.data || null}
+                  isLoading={emailDetailQuery.isLoading}
+                  onDeleteSuccess={() => {
+                    setSelectedEmailId(null);
+                    setSelectedMailboxId('INBOX');
+                  }}
+                  onReply={() => {
+                    setComposeMode('reply');
+                    setComposeOpen(true);
+                  }}
+                  onReplyAll={() => {
+                    setComposeMode('replyAll');
+                    setComposeOpen(true);
+                  }}
+                  onForward={() => {
+                    setComposeMode('forward');
+                    setComposeOpen(true);
+                  }}
+                />
+              </div>
+            </div>
+          ) : viewMode === 'list' ? (
+            <div className="h-full flex flex-col overflow-hidden min-w-0 w-full">
               {/* Toolbar */}
               <div className="flex items-center gap-3 px-4 py-2 border-b">
                 <div className="flex items-center gap-2">
@@ -275,6 +311,7 @@ export const DashboardLayout = () => {
                     selectedEmailId={selectedEmailId}
                     onBack={handleClearSearch}
                     onRetry={() => searchResultsQuery.refetch()}
+                    isMobile={true}
                   />
                 </div>
               ) : (
@@ -319,41 +356,119 @@ export const DashboardLayout = () => {
                 </>
               )}
             </div>
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
-
-          {/* Email Detail Column */}
-          <ResizablePanel defaultSize={65} minSize={50}>
-            <div className="h-full overflow-hidden">
-              <EmailDetail
-                email={emailDetailQuery.data || null}
-                isLoading={emailDetailQuery.isLoading}
-                onDeleteSuccess={() => {
-                  // After delete, clear selection and go back to inbox
-                  setSelectedEmailId(null);
-                  setSelectedMailboxId('INBOX');
-                }}
-                onReply={() => {
-                  setComposeMode('reply');
-                  setComposeOpen(true);
-                }}
-                onReplyAll={() => {
-                  setComposeMode('replyAll');
-                  setComposeOpen(true);
-                }}
-                onForward={() => {
-                  setComposeMode('forward');
-                  setComposeOpen(true);
-                }}
-              />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          ) : (
+            <KanbanBoardView mailboxId={selectedMailboxId} />
+          )
         ) : (
-          <KanbanBoardView
-            mailboxId={selectedMailboxId}
-          />
+          /* Desktop View */
+          viewMode === 'list' ? (
+            <ResizablePanelGroup direction="horizontal" className="h-full">
+              {/* Email List Column */}
+              <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+                <div className="border-r h-full flex flex-col overflow-hidden min-w-0 w-full">
+                  {/* Toolbar */}
+                  <div className="flex items-center gap-3 px-4 py-2 border-b">
+                    <div className="flex items-center gap-2">
+                      <SidebarTrigger />
+                    </div>
+
+                    <SearchBar
+                      onSearch={handleSearch}
+                      onClear={handleClearSearch}
+                    />
+                  </div>
+
+                  {isSearchMode ? (
+                    /* Search Results View */
+                    <div className="flex-1 overflow-hidden">
+                      <SearchResults
+                        query={searchQuery}
+                        results={searchResultsQuery.data}
+                        isLoading={searchResultsQuery.isLoading}
+                        isError={searchResultsQuery.isError}
+                        error={searchResultsQuery.error}
+                        onEmailSelect={setSelectedEmailId}
+                        selectedEmailId={selectedEmailId}
+                        onBack={handleClearSearch}
+                        onRetry={() => searchResultsQuery.refetch()}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      {/* Bulk Action Toolbar */}
+                      <ErrorBoundary>
+                        <BulkActionToolbar
+                          selectedCount={emailSelection.count}
+                          totalCount={emailsQuery.data?.emails.length || 0}
+                          selectAll={emailSelection.selectAll}
+                          onToggleSelectAll={handleToggleSelectAll}
+                          onBulkDelete={handleBulkDelete}
+                          onBulkMarkRead={handleBulkMarkRead}
+                          onBulkMarkUnread={handleBulkMarkUnread}
+                          selectedEmails={(emailsQuery.data?.emails || []).filter((email) =>
+                            emailSelection.selectedIds.has(email.id)
+                          )}
+                        />
+                      </ErrorBoundary>
+
+                      {/* Email List */}
+                      <div className="flex-1 overflow-hidden w-full min-w-0">
+                        <EmailList
+                          emails={emailsQuery.data?.emails || []}
+                          selectedEmailId={selectedEmailId}
+                          onSelectEmail={setSelectedEmailId}
+                          isLoading={emailsQuery.isLoading}
+                          selectedIds={emailSelection.selectedIds}
+                          onToggleSelect={handleToggleSelect}
+                          showCheckboxes={true}
+                        />
+                      </div>
+
+                      {/* Pagination */}
+                      {emailsQuery.data?.pagination && totalPages > 1 && (
+                        <PaginationControls
+                          page={page}
+                          totalPages={totalPages}
+                          onPageChange={setPage}
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              {/* Email Detail Column */}
+              <ResizablePanel defaultSize={65} minSize={50}>
+                <div className="h-full overflow-hidden">
+                  <EmailDetail
+                    email={emailDetailQuery.data || null}
+                    isLoading={emailDetailQuery.isLoading}
+                    onDeleteSuccess={() => {
+                      // After delete, clear selection and go back to inbox
+                      setSelectedEmailId(null);
+                      setSelectedMailboxId('INBOX');
+                    }}
+                    onReply={() => {
+                      setComposeMode('reply');
+                      setComposeOpen(true);
+                    }}
+                    onReplyAll={() => {
+                      setComposeMode('replyAll');
+                      setComposeOpen(true);
+                    }}
+                    onForward={() => {
+                      setComposeMode('forward');
+                      setComposeOpen(true);
+                    }}
+                  />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            <KanbanBoardView mailboxId={selectedMailboxId} />
+          )
         )}
       </SidebarInset>
 

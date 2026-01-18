@@ -14,6 +14,7 @@ interface SearchResultsProps {
   selectedEmailId: string | null;
   onBack: () => void;
   onRetry: () => void;
+  isMobile?: boolean;
 }
 
 export const SearchResults = ({
