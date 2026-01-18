@@ -6,7 +6,7 @@ import { showSuccess, showError } from '@/lib/toast';
 export function useCompose() {
     const sendEmail = useMutation({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mutationFn: (draft: any) => emailService.sendEmail(draft),
+        mutationFn: (draft: any) => emailService.sendEmail(draft, draft.attachments),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['emails', 'sent'] });
             queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
