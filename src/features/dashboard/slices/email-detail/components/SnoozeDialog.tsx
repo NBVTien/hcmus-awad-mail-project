@@ -16,8 +16,15 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
 const snoozeSchema = z.object({
-  snoozeUntil: z.date().refine((date) => date > new Date(), {
-    message: 'Snooze time must be in the future',
+  snoozeUntil: z.date().refine((date) => {
+    // Only validate that the date is today or later (ignore time since it's set separately)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+    return selectedDate >= today;
+  }, {
+    message: 'Snooze date cannot be in the past',
   }),
   isRecurring: z.boolean().optional(),
   recurrencePattern: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
@@ -105,6 +112,12 @@ export const SnoozeDialog: React.FC<SnoozeDialogProps> = ({
     // Combine selected date with selected time
     const [hours, minutes] = selectedTime.split(':').map(Number);
     const snoozeDate = setHours(setMinutes(selectedDate, minutes), hours);
+
+    // Validate that the combined date+time is in the future
+    if (snoozeDate <= new Date()) {
+      toast.error('Snooze time must be in the future');
+      return;
+    }
 
     await submitSnooze(snoozeDate, data.isRecurring, data.recurrencePattern, data.reason);
   };
@@ -268,7 +281,11 @@ export const SnoozeDialog: React.FC<SnoozeDialogProps> = ({
                         setValue('snoozeUntil', date, { shouldValidate: true });
                       }
                     }}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
