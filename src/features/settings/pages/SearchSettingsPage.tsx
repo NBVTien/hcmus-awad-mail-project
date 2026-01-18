@@ -6,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-export type SearchMode = 'normal' | 'advanced';
+import type { SearchMode } from '@/hooks/useSearchMode';
 
 const SEARCH_MODE_KEY = 'search-mode-preference';
 
-export const SearchSettingsPage = () => {
+const SearchSettingsPage = () => {
   const navigate = useNavigate();
   const [searchMode, setSearchMode] = useState<SearchMode>(() => {
     const saved = localStorage.getItem(SEARCH_MODE_KEY);
@@ -216,3 +215,5 @@ export const SearchSettingsPage = () => {
     </div>
   );
 };
+
+export { SearchSettingsPage };

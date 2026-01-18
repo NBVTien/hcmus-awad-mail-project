@@ -364,19 +364,19 @@ export const emailService = {
         return this.searchEmailsFuzzyOnly(query);
       }
 
-      // Use unified search endpoint (GET /emails/search) for advanced mode
+      // Use unified search endpoint (GET /emails/search/semantic) for advanced mode
       // This combines fuzzy + semantic search
-      const response = await apiClient.get('/emails/search', {
+      const response = await apiClient.get('/emails/search/semantic', {
         params: {
           query: query.trim(),
         },
       });
 
-      // Backend returns array of normalized email objects directly
-      const emails = Array.isArray(response.data) ? response.data : [];
+      // Backend returns: { emails: [...], pagination: {...} }
+      const backendEmails = response.data.emails || [];
 
       // Transform to frontend format if needed
-      return emails.map((email: BackendEmail | BackendSearchResult) => {
+      return backendEmails.map((email: BackendEmail | BackendSearchResult) => {
         // Check if it's database format or Gmail API format
         if ('from_email' in email) {
           return transformSearchResult(email as BackendSearchResult);
@@ -411,11 +411,19 @@ export const emailService = {
         },
       });
 
-      // Backend returns: { query, count, results: [...] }
-      const backendResults = response.data.results || [];
+      // Backend returns: { query, count, emails: [...] }
+      const backendResults = response.data.emails || [];
 
       // Transform search results to frontend Email format
-      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
+      // Check if the backend is returning database format or Gmail API format
+      return backendResults.map((result: BackendSearchResult | BackendEmail) => {
+        // Database format has from_email field, Gmail API format has nested from object
+        if ('from_email' in result) {
+          return transformSearchResult(result as BackendSearchResult);
+        } else {
+          return transformEmail(result as BackendEmail);
+        }
+      });
     } catch (error) {
       console.error('Error performing fuzzy search:', error);
       throw error;

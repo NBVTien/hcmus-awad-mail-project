@@ -50,7 +50,7 @@ const PRESET_COLORS = [
   { label: 'Gray', value: '#6B7280' },
 ];
 
-export const KanbanSettingsPage = () => {
+const KanbanSettingsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -438,3 +438,6 @@ export const KanbanSettingsPage = () => {
     </div>
   );
 };
+
+
+export { KanbanSettingsPage };
