@@ -1,12 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, X, Clock, Mail, FileText } from 'lucide-react';
+import { Search, X, Clock, Mail, FileText, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { cn } from '@/lib/utils';
 
+export interface SearchFilters {
+  isRead?: boolean; // false for unread only
+  hasAttachment?: boolean;
+}
+
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, filters?: SearchFilters) => void;
   onClear: () => void;
 }
 
@@ -14,6 +22,13 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  // Filter states
+  // We use slightly different internal state to map to UI checkboxes
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [hasAttachment, setHasAttachment] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -35,18 +50,28 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const getFilters = (): SearchFilters => {
+    const f: SearchFilters = {};
+    if (unreadOnly) f.isRead = false;
+    if (hasAttachment) f.hasAttachment = true;
+    return f;
+  };
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (query.trim()) {
       saveRecentSearch(query.trim());
-      onSearch(query.trim());
+      onSearch(query.trim(), getFilters());
       setShowSuggestions(false);
       setSelectedIndex(-1);
+      setIsFilterOpen(false);
     }
   };
 
   const handleClear = () => {
     setQuery('');
+    setUnreadOnly(false);
+    setHasAttachment(false);
     setShowSuggestions(false);
     setSelectedIndex(-1);
     onClear();
@@ -55,7 +80,8 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   const handleSelectSuggestion = (value: string) => {
     setQuery(value);
     saveRecentSearch(value);
-    onSearch(value);
+    // When selecting suggestion, apply current filters too
+    onSearch(value, getFilters());
     setShowSuggestions(false);
     setSelectedIndex(-1);
     inputRef.current?.blur();
@@ -98,6 +124,29 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
     }
   };
 
+  // Apply filters immediately if specific requirement says "when complete filter", 
+  // but usually in search bar we prefer "Apply" or just re-search if query exists.
+  // User said "khi hoàn tát filter thì sẽ gửi request search".
+  // So maybe a button "Apply Filters" inside popover?
+  // Let's implement Apply button in Popover.
+
+  const handleApplyFilters = () => {
+    const filters = getFilters();
+    const hasActiveFilters = Object.keys(filters).length > 0;
+
+    if (query.trim() || hasActiveFilters) {
+      if (query.trim()) {
+        saveRecentSearch(query.trim());
+      }
+      onSearch(query.trim(), filters);
+      setShowSuggestions(false);
+      setSelectedIndex(-1);
+      setIsFilterOpen(false);
+    } else {
+      console.warn('SearchBar: Query is empty and no filters selected');
+    }
+  };
+
   const getSuggestionIcon = (type: string) => {
     switch (type) {
       case 'contact':
@@ -111,9 +160,11 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
     }
   };
 
+  const activeFilterCount = (unreadOnly ? 1 : 0) + (hasAttachment ? 1 : 0);
+
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1 max-w-md relative">
-      <div className="relative flex-1">
+    <div className="flex items-center gap-2 flex-1 max-w-md relative">
+      <form onSubmit={handleSubmit} className="relative flex-1">
         <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
         <Input
           ref={inputRef}
@@ -123,7 +174,7 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleInputFocus}
-          className="pl-8 pr-20"
+          className="pl-8 pr-20 h-9"
           autoComplete="off"
         />
         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
@@ -177,7 +228,39 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
             ))}
           </div>
         )}
-      </div>
-    </form>
+      </form>
+
+      <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon" className={cn("h-9 w-9 shrink-0", activeFilterCount > 0 && "border-primary text-primary bg-primary/10")}>
+            <Filter className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-4" align="end">
+          <div className="space-y-4">
+            <h4 className="font-medium leading-none">Filters</h4>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="filter-unread"
+                  checked={unreadOnly}
+                  onCheckedChange={(c) => setUnreadOnly(!!c)}
+                />
+                <Label htmlFor="filter-unread" className="text-sm font-normal cursor-pointer">Unread only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="filter-attachment"
+                  checked={hasAttachment}
+                  onCheckedChange={(c) => setHasAttachment(!!c)}
+                />
+                <Label htmlFor="filter-attachment" className="text-sm font-normal cursor-pointer">Has attachment</Label>
+              </div>
+            </div>
+            <Button type="button" className="w-full" size="sm" onClick={handleApplyFilters}>Apply Filters</Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };

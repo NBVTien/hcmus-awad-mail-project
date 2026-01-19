@@ -381,30 +381,36 @@ export const emailService = {
    * @param query - Search query string
    * @param mode - Search mode: 'normal' (fuzzy only) or 'advanced' (fuzzy + semantic)
    */
-  async searchEmails(query: string, mode: 'normal' | 'advanced' = 'advanced'): Promise<Email[]> {
-    if (!query.trim()) {
+  async searchEmails(
+    query: string,
+    mode: 'normal' | 'advanced' = 'advanced',
+    filters?: { isRead?: boolean; hasAttachment?: boolean }
+  ): Promise<Email[]> {
+    const hasFilters = filters && (filters.isRead !== undefined || filters.hasAttachment !== undefined);
+    if (!query.trim() && !hasFilters) {
       return [];
     }
 
     try {
       if (mode === 'normal') {
         // Use fuzzy-only search for normal mode
-        return this.searchEmailsFuzzyOnly(query);
+        return this.searchEmailsFuzzyOnly(query, filters);
       }
 
-      // Use unified search endpoint (GET /emails/search) for advanced mode
+      // Use unified search endpoint (GET /emails/search/semantic) for advanced mode
       // This combines fuzzy + semantic search
-      const response = await apiClient.get('/emails/search', {
+      const response = await apiClient.get('/emails/search/semantic', {
         params: {
           query: query.trim(),
+          ...filters,
         },
       });
 
-      // Backend returns array of normalized email objects directly
-      const emails = Array.isArray(response.data) ? response.data : [];
+      // Backend returns: { emails: [...], pagination: {...} }
+      const backendEmails = response.data.emails || [];
 
       // Transform to frontend format if needed
-      return emails.map((email: BackendEmail | BackendSearchResult) => {
+      return backendEmails.map((email: BackendEmail | BackendSearchResult) => {
         // Check if it's database format or Gmail API format
         if ('from_email' in email) {
           return transformSearchResult(email as BackendSearchResult);
@@ -423,9 +429,14 @@ export const emailService = {
    * Uses PostgreSQL trigram similarity without semantic search
    *
    * @param query - Search query string
+   * @param filters - Optional filters
    */
-  async searchEmailsFuzzyOnly(query: string): Promise<Email[]> {
-    if (!query.trim()) {
+  async searchEmailsFuzzyOnly(
+    query: string,
+    filters?: { isRead?: boolean; hasAttachment?: boolean }
+  ): Promise<Email[]> {
+    const hasFilters = filters && (filters.isRead !== undefined || filters.hasAttachment !== undefined);
+    if (!query.trim() && !hasFilters) {
       return [];
     }
 
@@ -436,14 +447,23 @@ export const emailService = {
           q: query.trim(),
           fields: 'subject,from_email',
           limit: 20,
+          ...filters,
         },
       });
 
-      // Backend returns: { query, count, results: [...] }
-      const backendResults = response.data.results || [];
+      // Backend returns: { query, count, emails: [...] }
+      const backendResults = response.data.emails || [];
 
       // Transform search results to frontend Email format
-      return backendResults.map((result: BackendSearchResult) => transformSearchResult(result));
+      // Check if the backend is returning database format or Gmail API format
+      return backendResults.map((result: BackendSearchResult | BackendEmail) => {
+        // Database format has from_email field, Gmail API format has nested from object
+        if ('from_email' in result) {
+          return transformSearchResult(result as BackendSearchResult);
+        } else {
+          return transformEmail(result as BackendEmail);
+        }
+      });
     } catch (error) {
       console.error('Error performing fuzzy search:', error);
       throw error;

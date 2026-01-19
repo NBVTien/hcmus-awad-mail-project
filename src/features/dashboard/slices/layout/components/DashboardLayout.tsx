@@ -55,6 +55,7 @@ export const DashboardLayout = () => {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilters, setSearchFilters] = useState<{ isRead?: boolean; hasAttachment?: boolean } | undefined>(undefined);
   const [isSearchMode, setIsSearchMode] = useState(false);
 
   // Persist view mode to localStorage
@@ -66,7 +67,7 @@ export const DashboardLayout = () => {
   const mailboxesQuery = useMailboxes();
   const emailsQuery = useEmails(selectedMailboxId, page);
   const emailDetailQuery = useEmailDetail(selectedEmailId);
-  const searchResultsQuery = useSearch(searchQuery, isSearchMode);
+  const searchResultsQuery = useSearch(searchQuery, isSearchMode, searchFilters);
 
   // Bulk operations
   const { bulkDelete, bulkMarkRead } = useBulkSelection();
@@ -165,14 +166,16 @@ export const DashboardLayout = () => {
   };
 
   // Search handlers
-  const handleSearch = (query: string) => {
+  const handleSearch = (query: string, filters?: { isRead?: boolean; hasAttachment?: boolean }) => {
     setSearchQuery(query);
+    setSearchFilters(filters);
     setIsSearchMode(true);
     setSelectedEmailId(null);
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
+    setSearchFilters(undefined);
     setIsSearchMode(false);
     setSelectedEmailId(null);
   };
@@ -189,12 +192,12 @@ export const DashboardLayout = () => {
         <AppSidebar
           mailboxes={[]}
           selectedMailboxId=""
-          onSelectMailbox={() => {}}
+          onSelectMailbox={() => { }}
           isLoading={false}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          onCompose={() => {}}
-          onSync={() => {}}
+          onCompose={() => { }}
+          onSync={() => { }}
         />
         <SidebarInset>
           <NoEmailConfigured />

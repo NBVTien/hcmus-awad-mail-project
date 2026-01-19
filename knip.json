@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "tags": [
+    "-lintignore"
+  ],
+  "ignoreDependencies": [],
+  "entry": [
+    "src/main.tsx",
+    "src/features/**/pages/*.tsx"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignore": ["src/components/ui/**/*.tsx"]
+}

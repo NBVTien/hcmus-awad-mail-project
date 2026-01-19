@@ -1,8 +1,7 @@
-import { Loader2, Search, ArrowLeft, Star, Paperclip } from 'lucide-react';
+import { Loader2, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { EmailList } from '@/features/dashboard/slices/email-list/components';
 import type { Email } from '@/types/email.types';
-import { cn } from '@/lib/utils';
 
 interface SearchResultsProps {
   query: string;
@@ -100,58 +99,13 @@ export const SearchResults = ({
         )}
 
         {!isLoading && !isError && results && results.length > 0 && (
-          <ScrollArea className="h-full">
-            <div className="flex flex-col">
-              {results.map((email) => {
-                const isSelected = email.id === selectedEmailId;
-                const timestamp = new Date(email.timestamp);
-                const timeStr = timestamp.toLocaleString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                });
-
-                return (
-                  <div
-                    key={email.id}
-                    onClick={() => onEmailSelect(email.id)}
-                    className={cn(
-                      'p-3 border-b last:border-b-0 cursor-pointer hover:bg-accent transition-colors',
-                      isSelected && 'bg-accent',
-                      !email.isRead && 'border-l-4 border-l-blue-500'
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {!email.isRead && (
-                          <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                        )}
-                        <span className="font-medium text-sm truncate">
-                          {email.from.name || email.from.email}
-                        </span>
-                        {email.isStarred && (
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />
-                        )}
-                        {email.hasAttachments && (
-                          <Paperclip className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {timeStr}
-                      </span>
-                    </div>
-                    <div className={cn('text-sm mb-1', !email.isRead && 'font-semibold')}>
-                      {email.subject || '(No subject)'}
-                    </div>
-                    <div className="text-xs text-muted-foreground line-clamp-2">
-                      {email.snippet}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
+          <EmailList
+            emails={results}
+            selectedEmailId={selectedEmailId}
+            onSelectEmail={onEmailSelect}
+            isLoading={false}
+            showCheckboxes={false}
+          />
         )}
       </div>
     </div>
