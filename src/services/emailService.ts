@@ -381,15 +381,20 @@ export const emailService = {
    * @param query - Search query string
    * @param mode - Search mode: 'normal' (fuzzy only) or 'advanced' (fuzzy + semantic)
    */
-  async searchEmails(query: string, mode: 'normal' | 'advanced' = 'advanced'): Promise<Email[]> {
-    if (!query.trim()) {
+  async searchEmails(
+    query: string,
+    mode: 'normal' | 'advanced' = 'advanced',
+    filters?: { isRead?: boolean; hasAttachment?: boolean }
+  ): Promise<Email[]> {
+    const hasFilters = filters && (filters.isRead !== undefined || filters.hasAttachment !== undefined);
+    if (!query.trim() && !hasFilters) {
       return [];
     }
 
     try {
       if (mode === 'normal') {
         // Use fuzzy-only search for normal mode
-        return this.searchEmailsFuzzyOnly(query);
+        return this.searchEmailsFuzzyOnly(query, filters);
       }
 
       // Use unified search endpoint (GET /emails/search/semantic) for advanced mode
@@ -397,6 +402,7 @@ export const emailService = {
       const response = await apiClient.get('/emails/search/semantic', {
         params: {
           query: query.trim(),
+          ...filters,
         },
       });
 
@@ -423,9 +429,14 @@ export const emailService = {
    * Uses PostgreSQL trigram similarity without semantic search
    *
    * @param query - Search query string
+   * @param filters - Optional filters
    */
-  async searchEmailsFuzzyOnly(query: string): Promise<Email[]> {
-    if (!query.trim()) {
+  async searchEmailsFuzzyOnly(
+    query: string,
+    filters?: { isRead?: boolean; hasAttachment?: boolean }
+  ): Promise<Email[]> {
+    const hasFilters = filters && (filters.isRead !== undefined || filters.hasAttachment !== undefined);
+    if (!query.trim() && !hasFilters) {
       return [];
     }
 
@@ -436,6 +447,7 @@ export const emailService = {
           q: query.trim(),
           fields: 'subject,from_email',
           limit: 20,
+          ...filters,
         },
       });
 
