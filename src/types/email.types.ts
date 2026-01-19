@@ -35,6 +35,7 @@ export interface Email {
   isStarred: boolean;
   hasAttachments: boolean;
   attachments?: Attachment[];
+  gmailMessageId?: string;
 }
 
 export interface EmailDraft {

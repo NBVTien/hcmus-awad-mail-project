@@ -130,22 +130,7 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   // So maybe a button "Apply Filters" inside popover?
   // Let's implement Apply button in Popover.
 
-  const handleApplyFilters = () => {
-    const filters = getFilters();
-    const hasActiveFilters = Object.keys(filters).length > 0;
 
-    if (query.trim() || hasActiveFilters) {
-      if (query.trim()) {
-        saveRecentSearch(query.trim());
-      }
-      onSearch(query.trim(), filters);
-      setShowSuggestions(false);
-      setSelectedIndex(-1);
-      setIsFilterOpen(false);
-    } else {
-      console.warn('SearchBar: Query is empty and no filters selected');
-    }
-  };
 
   const getSuggestionIcon = (type: string) => {
     switch (type) {
@@ -244,7 +229,17 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                 <Checkbox
                   id="filter-unread"
                   checked={unreadOnly}
-                  onCheckedChange={(c) => setUnreadOnly(!!c)}
+                  onCheckedChange={(c) => {
+                    const newValue = !!c;
+                    setUnreadOnly(newValue);
+
+                    // Immediate update
+                    const newFilters: SearchFilters = {};
+                    if (newValue) newFilters.isRead = false;
+                    if (hasAttachment) newFilters.hasAttachment = true;
+
+                    onSearch(query, newFilters);
+                  }}
                 />
                 <Label htmlFor="filter-unread" className="text-sm font-normal cursor-pointer">Unread only</Label>
               </div>
@@ -252,12 +247,21 @@ export const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                 <Checkbox
                   id="filter-attachment"
                   checked={hasAttachment}
-                  onCheckedChange={(c) => setHasAttachment(!!c)}
+                  onCheckedChange={(c) => {
+                    const newValue = !!c;
+                    setHasAttachment(newValue);
+
+                    // Immediate update
+                    const newFilters: SearchFilters = {};
+                    if (unreadOnly) newFilters.isRead = false;
+                    if (newValue) newFilters.hasAttachment = true;
+
+                    onSearch(query, newFilters);
+                  }}
                 />
                 <Label htmlFor="filter-attachment" className="text-sm font-normal cursor-pointer">Has attachment</Label>
               </div>
             </div>
-            <Button type="button" className="w-full" size="sm" onClick={handleApplyFilters}>Apply Filters</Button>
           </div>
         </PopoverContent>
       </Popover>

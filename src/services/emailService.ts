@@ -31,6 +31,7 @@ interface BackendEmail {
   read?: boolean;
   starred?: boolean;
   attachments?: Attachment[];
+  gmailMessageId?: string;
 }
 
 /**
@@ -50,6 +51,7 @@ interface BackendSearchResult {
   attachments?: Attachment[];
   created_at?: string;
   similarity?: number;
+  gmailMessageId?: string;
 }
 
 interface BackendMailbox {
@@ -82,6 +84,7 @@ const transformSearchResult = (result: BackendSearchResult): Email => {
     isStarred: result.starred ?? false,
     hasAttachments: (result.attachments && result.attachments.length > 0) || false,
     attachments: result.attachments,
+    gmailMessageId: result.gmailMessageId,
   };
 };
 
@@ -125,6 +128,7 @@ const transformEmail = (backendEmail: BackendEmail): Email => {
     isStarred: backendEmail.starred !== undefined ? backendEmail.starred : backendEmail.labelIds?.includes('STARRED') || false,
     hasAttachments: (backendEmail.attachments && backendEmail.attachments.length > 0) || false,
     attachments: backendEmail.attachments,
+    gmailMessageId: backendEmail.gmailMessageId,
   };
 };
 

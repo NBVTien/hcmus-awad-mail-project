@@ -94,7 +94,7 @@ export const EmailDetail = ({
           <div className="flex items-center justify-end">
             <EmailActionButtons
               emailId={email.id}
-              gmailMessageId={email.id}
+              gmailMessageId={email.gmailMessageId}
               isStarred={!!email.isStarred}
               onToggleStar={(id, next) => toggleStar.mutate({ emailId: id, isStarred: next })}
               onDelete={(id) =>
