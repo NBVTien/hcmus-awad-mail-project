@@ -16,6 +16,6 @@ export const useSearch = (
       return emailService.searchEmails(query, searchMode, filters);
     },
     enabled: enabled && (query.trim().length > 0 || (!!filters && (filters.isRead !== undefined || filters.hasAttachment !== undefined))),
-    staleTime: 30000, // 30 seconds
+    staleTime: 0, // Disable cache as requested
   });
 };

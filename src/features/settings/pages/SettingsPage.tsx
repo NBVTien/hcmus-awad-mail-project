@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmailSettingsTab } from '../components/EmailSettingsTab';
 import { SearchSettingsTab } from '../components/SearchSettingsTab';
 import { KanbanSettingsTab } from '../components/KanbanSettingsTab';
+import { AccountSettingsTab } from '../components/AccountSettingsTab';
 
 export const SettingsPage = () => {
   const navigate = useNavigate();
@@ -34,10 +35,11 @@ export const SettingsPage = () => {
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="search">Search</TabsTrigger>
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
+            <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="email" className="mt-6">
@@ -50,6 +52,10 @@ export const SettingsPage = () => {
 
           <TabsContent value="kanban" className="mt-6">
             <KanbanSettingsTab />
+          </TabsContent>
+
+          <TabsContent value="account" className="mt-6">
+            <AccountSettingsTab />
           </TabsContent>
         </Tabs>
       </div>

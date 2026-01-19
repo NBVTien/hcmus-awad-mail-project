@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import type { ReactNode } from 'react';
 import type { User, AuthToken } from '@/types/auth.types';
 import { setAuthCallbacks } from '@/lib/apiClient';
+import { queryClient } from '@/lib/queryClient';
 
 interface AuthContextValue {
   user: User | null;
@@ -61,6 +62,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  // Shared cleanup logic
+  const performCleanup = useCallback(async () => {
+    // 1. Clear local auth state
+    setUser(null);
+    setAccessToken(null);
+    setTokenExpiresAt(null);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+
+    // 2. Clear React Query cache (both memory and persistent)
+    queryClient.clear();
+    try {
+      const { persister } = await import('@/lib/persister');
+      await persister.removeClient();
+    } catch (err) {
+      console.error('Failed to clear persistence:', err);
+    }
+  }, []);
+
   const login = useCallback((newUser: User, token: AuthToken) => {
     setUser(newUser);
     setAccessToken(token.accessToken);
@@ -71,23 +90,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
-    // Call backend logout endpoint to invalidate refresh token
+    // Notify other tabs immediately
+    const channel = new BroadcastChannel('auth_channel');
+    channel.postMessage('LOGOUT');
+    channel.close();
+
+    // Call backend logout endpoint
     if (refreshToken) {
       try {
         const { authService } = await import('@/services/authService');
         await authService.logout({ refreshToken });
       } catch (error) {
-        // Still logout locally even if backend call fails
         console.error('Logout error:', error);
       }
     }
 
-    // Clear local state
-    setUser(null);
-    setAccessToken(null);
-    setTokenExpiresAt(null);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-  }, []);
+    // Perform local cleanup
+    await performCleanup();
+  }, [performCleanup]);
 
   // Set API client callbacks
   useEffect(() => {
@@ -97,6 +117,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       logout,
     });
   }, [getAccessToken, refreshAccessToken, logout]);
+
+  // Listen for logout events from other tabs
+  useEffect(() => {
+    const channel = new BroadcastChannel('auth_channel');
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'LOGOUT') {
+        console.log('Received LOGOUT broadcast');
+        performCleanup();
+      }
+    };
+
+    channel.addEventListener('message', handleMessage);
+
+    return () => {
+      channel.removeEventListener('message', handleMessage);
+      channel.close();
+    };
+  }, [performCleanup]);
 
   // Auto-refresh token at threshold
   useEffect(() => {
@@ -148,6 +187,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     hydrateSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+
+
+  // Listen for storage events (backup for logout sync)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === REFRESH_TOKEN_KEY && event.newValue === null) {
+        console.log('Detected storage clear, performing cleanup');
+        performCleanup();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [performCleanup]);
 
   const value: AuthContextValue = {
     user,
