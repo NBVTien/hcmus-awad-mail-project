@@ -127,27 +127,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-
-// API Error helper
-export class ApiError extends Error {
-  code: string;
-  statusCode: number;
-  details?: unknown;
-
-  constructor(
-    code: string,
-    message: string,
-    statusCode: number,
-    details?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-    this.code = code;
-    this.statusCode = statusCode;
-    this.details = details;
-  }
-}
-
-export const isApiError = (error: unknown): error is ApiError => {
-  return error instanceof ApiError;
-};
