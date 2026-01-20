@@ -80,3 +80,13 @@ export interface SummaryOptions {
   customInstructions?: string;
   provider?: string;
 }
+
+export interface EmailSummary {
+  id: string;
+  subject: string;
+  summary: string;
+  length: string;
+  tone: string;
+  provider: string;
+}
+
