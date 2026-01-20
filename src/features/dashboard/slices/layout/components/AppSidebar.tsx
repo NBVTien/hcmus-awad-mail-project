@@ -127,24 +127,30 @@ export const AppSidebar = ({
                     <Skeleton className="h-9 w-full" />
                   </div>
                 ) : (
-                  mailboxes.map((mailbox) => (
-                    <SidebarMenuItem key={mailbox.id}>
-                      <SidebarMenuButton
-                        onClick={() => onSelectMailbox(mailbox.id)}
-                        isActive={selectedMailboxId === mailbox.id}
-                        className="w-full"
-                      >
-                        <span className="flex items-center justify-between w-full gap-2 min-w-0">
-                          <span className="truncate">{mailbox.name}</span>
-                          {mailbox.unreadCount > 0 && (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground shrink-0">
-                              {mailbox.unreadCount}
+                  mailboxes.map((mailbox) => {
+                    const IconComponent = mailbox.icon as React.ComponentType<{ className?: string }> | undefined;
+                    return (
+                      <SidebarMenuItem key={mailbox.id}>
+                        <SidebarMenuButton
+                          onClick={() => onSelectMailbox(mailbox.id)}
+                          isActive={selectedMailboxId === mailbox.id}
+                          className="w-full"
+                        >
+                          <span className="flex items-center justify-between w-full gap-2 min-w-0">
+                            <span className="flex items-center gap-2 truncate">
+                              {IconComponent && <IconComponent className="h-4 w-4 shrink-0" />}
+                              <span className="truncate">{mailbox.name}</span>
                             </span>
-                          )}
-                        </span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))
+                            {mailbox.unreadCount > 0 && (
+                              <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground shrink-0">
+                                {mailbox.unreadCount}
+                              </span>
+                            )}
+                          </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })
                 )}
               </SidebarMenu>
             </ScrollArea>

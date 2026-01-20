@@ -14,7 +14,7 @@ export interface Attachment {
 export interface Mailbox {
   id: string;
   name: string;
-  icon?: string;
+  icon?: string | React.ComponentType<{ className?: string }>;
   unreadCount: number;
   totalCount: number;
   order: number;
@@ -49,17 +49,6 @@ export interface EmailDraft {
   forwardEmailId?: string | null;
 }
 
-export interface EmailListItem {
-  id: string;
-  from: EmailAddress;
-  subject: string;
-  snippet: string;
-  timestamp: string;
-  isRead: boolean;
-  isStarred: boolean;
-  hasAttachments: boolean;
-}
-
 export interface GetEmailsResponse {
   emails: Email[];
   pagination: {
@@ -85,33 +74,9 @@ export interface EmailSelection {
   count: number;
 }
 
-export interface BulkActionRequest {
-  emailIds: string[];
-  action: 'delete' | 'markRead' | 'markUnread';
-}
-
-export interface BulkActionResponse {
-  updatedEmails: Email[];
-  count: number;
-}
-
-export interface SendEmailResponse {
-  email: Email;
-  success: boolean;
-}
-
 export interface SummaryOptions {
   length?: 'short' | 'medium' | 'long';
   tone?: 'formal' | 'casual' | 'technical';
   customInstructions?: string;
   provider?: string;
-}
-
-export interface EmailSummary {
-  id: string;
-  subject: string;
-  summary: string;
-  length: string;
-  tone: string;
-  provider: string;
 }

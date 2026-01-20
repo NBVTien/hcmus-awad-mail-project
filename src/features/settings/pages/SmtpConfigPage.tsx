@@ -35,7 +35,7 @@ interface SmtpConfig {
   createdAt: string;
 }
 
-const SmtpConfigPage = () => {
+export const SmtpConfigPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -219,6 +219,7 @@ const SmtpConfigPage = () => {
                   Read Render's announcement →
                 </a>
               </div>
+            </div>
           </AlertDescription>
         </Alert>
 
@@ -375,6 +376,3 @@ const SmtpConfigPage = () => {
     </div>
   );
 };
-
-
-export { SmtpConfigPage };
