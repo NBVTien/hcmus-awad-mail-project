@@ -35,7 +35,7 @@ interface SmtpConfig {
   createdAt: string;
 }
 
-const SmtpConfigPage = () => {
+export const SmtpConfigPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -195,15 +195,31 @@ const SmtpConfigPage = () => {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Important:</strong> SMTP may be unavailable.{' '}
-            <a
-              href="https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:no-underline"
-            >
-              Learn more
-            </a>
+            <div className="space-y-2">
+              <div>
+                <strong>SMTP Sending Unavailable on Free Tier:</strong> Free Render web services block
+                outbound traffic to SMTP ports (25, 465, 587) as of September 26th.
+              </div>
+              <div className="text-sm">
+                <strong>What this means:</strong>
+                <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
+                  <li>You can still receive emails via IMAP (port 993)</li>
+                  <li>Sending emails via SMTP will not work on free deployments</li>
+                  <li>Upgrade to a paid Render instance to enable SMTP sending</li>
+                  <li>Gmail OAuth works normally and is recommended for free tier</li>
+                </ul>
+              </div>
+              <div className="text-sm mt-2">
+                <a
+                  href="https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline font-medium"
+                >
+                  Read Render's announcement →
+                </a>
+              </div>
+            </div>
           </AlertDescription>
         </Alert>
 
@@ -360,6 +376,3 @@ const SmtpConfigPage = () => {
     </div>
   );
 };
-
-
-export { SmtpConfigPage };

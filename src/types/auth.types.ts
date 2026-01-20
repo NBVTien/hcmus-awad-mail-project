@@ -48,12 +48,6 @@ export interface GoogleAuthResponse {
   codeVerifier: string;
 }
 
-export interface GoogleCallbackRequest {
-  code: string;
-  state: string;
-  codeVerifier: string;
-}
-
 export interface RefreshTokenRequest {
   refreshToken: string;
 }

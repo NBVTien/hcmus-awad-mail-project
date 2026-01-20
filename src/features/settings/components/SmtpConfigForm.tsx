@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const smtpConfigSchema = z.object({
-  emailAddress: z.string().email('Invalid email address'),
+  emailAddress: z.email('Invalid email address'),
   displayName: z.string().optional(),
   imapHost: z.string().min(1, 'IMAP host is required'),
   imapPort: z.number().int().min(1).max(65535),
@@ -130,6 +130,14 @@ export const SmtpConfigForm = ({
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* SMTP Limitation Warning */}
+          <Alert variant="destructive">
+            <AlertDescription className="text-sm">
+              <strong>Note:</strong> SMTP sending (ports 25, 465, 587) is blocked on free Render deployments.
+              IMAP (receiving emails) still works. Use Gmail OAuth for full functionality on free tier.
+            </AlertDescription>
+          </Alert>
+          
           {/* Basic Info */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">Account Information</h3>

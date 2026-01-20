@@ -62,7 +62,17 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't try to refresh if:
+    // 1. It's already a retry
+    // 2. The request was for refreshing the token (avoid infinite loop)
+    // 3. The request was for logging in/out (auth endpoints shouldn't trigger refresh)
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/refresh') &&
+      !originalRequest.url?.includes('/auth/login') &&
+      !originalRequest.url?.includes('/auth/logout')
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -107,32 +117,13 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // If it's a 401 on /auth/refresh, we MUST logout immediately
+    if (error.response?.status === 401 && originalRequest.url?.includes('/auth/refresh')) {
+      logout?.().catch(console.error);
+    }
+
     return Promise.reject(error);
   }
 );
 
 export default apiClient;
-
-// API Error helper
-export class ApiError extends Error {
-  code: string;
-  statusCode: number;
-  details?: unknown;
-
-  constructor(
-    code: string,
-    message: string,
-    statusCode: number,
-    details?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-    this.code = code;
-    this.statusCode = statusCode;
-    this.details = details;
-  }
-}
-
-export const isApiError = (error: unknown): error is ApiError => {
-  return error instanceof ApiError;
-};

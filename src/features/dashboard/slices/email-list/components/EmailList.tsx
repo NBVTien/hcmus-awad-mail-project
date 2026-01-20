@@ -25,6 +25,8 @@ const formatTimestamp = (timestamp: string): string => {
   }
 };
 
+import { useRef, useEffect } from 'react';
+
 const EmailListItem = ({
   email,
   isSelected,
@@ -33,8 +35,17 @@ const EmailListItem = ({
   onToggleCheck,
   showCheckbox,
 }: EmailListItemProps) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      itemRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isSelected]);
+
   return (
     <div
+      ref={itemRef}
       className={cn(
         'w-full max-w-full min-w-0 text-left pl-3.5 pr-4 py-3 transition-colors border-l-2 cursor-pointer',
         'hover:bg-accent',
@@ -111,6 +122,44 @@ export const EmailList = ({
       </div>
     );
   }
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Only handle if Shift is pressed (as requested)
+      if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+
+        // If no email is selected, select the first one
+        if (!selectedEmailId && emails.length > 0) {
+          onSelectEmail(emails[0].id);
+          return;
+        }
+
+        const currentIndex = emails.findIndex((email) => email.id === selectedEmailId);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+        if (e.key === 'ArrowUp') {
+          newIndex = Math.max(0, currentIndex - 1);
+        } else if (e.key === 'ArrowDown') {
+          newIndex = Math.min(emails.length - 1, currentIndex + 1);
+        }
+
+        if (newIndex !== currentIndex) {
+          onSelectEmail(emails[newIndex].id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [emails, selectedEmailId, onSelectEmail]);
 
   return (
     <div className="h-full w-full overflow-y-auto overflow-x-hidden">

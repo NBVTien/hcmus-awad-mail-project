@@ -3,12 +3,12 @@ import { kanbanService } from '@/services/kanbanService';
 import type { KanbanColumn, MoveCardDto } from '@/types/kanban.types';
 import { toast } from 'sonner';
 
-interface MoveEmailParams {
+type MoveEmailParams = {
   emailId: string;
   fromColumnId: string;
   toColumnId: string;
   order: number;
-}
+};
 
 type SortBy = 'date_newest' | 'date_oldest' | 'sender_name' | 'relevance';
 type FilterType = 'unread' | 'has_attachments' | 'starred';

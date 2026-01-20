@@ -1,23 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, Sparkles, Info } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { SearchMode } from '@/hooks/useSearchMode';
-
-const SEARCH_MODE_KEY = 'search-mode-preference';
+import { useSearchMode, type SearchMode } from '@/hooks/useSearchMode';
 
 export const SearchSettingsTab = () => {
-  const [searchMode, setSearchMode] = useState<SearchMode>(() => {
-    const saved = localStorage.getItem(SEARCH_MODE_KEY);
-    return (saved as SearchMode) || 'normal';
-  });
+  const { searchMode, setSearchMode } = useSearchMode();
   const [showSaved, setShowSaved] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(SEARCH_MODE_KEY, searchMode);
-  }, [searchMode]);
 
   const handleChange = (value: SearchMode) => {
     setSearchMode(value);

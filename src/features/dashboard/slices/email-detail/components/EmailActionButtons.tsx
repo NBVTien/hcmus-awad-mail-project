@@ -1,5 +1,5 @@
 import React from 'react';
-import { Reply, ReplyAll, Forward, Star, Trash2, MailOpen, Clock } from 'lucide-react';
+import { Reply, ReplyAll, Forward, Star, Trash2, MailOpen, Clock, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type Props = {
@@ -72,7 +72,7 @@ export const EmailActionButtons: React.FC<Props> = ({
         <Star className={`h-4 w-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
       </Button>
 
-      {onSnooze && gmailMessageId && (
+      {onSnooze && (
         <Button
           variant="outline"
           size="sm"
@@ -80,6 +80,18 @@ export const EmailActionButtons: React.FC<Props> = ({
           aria-label="Snooze"
         >
           <Clock className="h-4 w-4" />
+        </Button>
+      )}
+
+      {gmailMessageId && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open(`https://mail.google.com/mail/u/0/#inbox/${gmailMessageId}`, '_blank')}
+          aria-label="Open in Gmail"
+          title="Open in Gmail"
+        >
+          <ExternalLink className="h-4 w-4" />
         </Button>
       )}
 

@@ -22,11 +22,3 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
-
-export interface SnoozeEmailDto {
-  gmailMessageId: string;
-  snoozeUntil: Date;
-  isRecurring?: boolean;
-  recurrencePattern?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
-  reason?: string;
-}
