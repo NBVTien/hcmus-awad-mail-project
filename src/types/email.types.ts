@@ -78,7 +78,6 @@ export interface SummaryOptions {
   length?: 'short' | 'medium' | 'long';
   tone?: 'formal' | 'casual' | 'technical';
   customInstructions?: string;
-  provider?: string;
 }
 
 export interface EmailSummary {
@@ -87,6 +86,5 @@ export interface EmailSummary {
   summary: string;
   length: string;
   tone: string;
-  provider: string;
 }
 

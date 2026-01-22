@@ -716,7 +716,6 @@ export const emailService = {
       length: options?.length || 'medium',
       tone: options?.tone || 'formal',
       customInstructions: options?.customInstructions,
-      provider: options?.provider,
     });
     return response.data;
   },
